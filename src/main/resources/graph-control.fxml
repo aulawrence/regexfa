@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane prefHeight="600.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/10.0.2-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="Test4.Controller.GraphControlController">
+    <children>
+        <Label layoutX="25.0" layoutY="19.0" text="Nodes" AnchorPane.leftAnchor="12.0" AnchorPane.topAnchor="12.0" />
+        <AnchorPane layoutX="25.0" layoutY="53.0" AnchorPane.leftAnchor="12.0" AnchorPane.topAnchor="36.0">
+            <children>
+                <ListView fx:id="list_fromNode" layoutY="18.0" prefHeight="200.0" prefWidth="120.0" AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="18.0" />
+                <ListView fx:id="list_toNode" layoutX="174.0" layoutY="18.0" prefHeight="200.0" prefWidth="120.0" AnchorPane.leftAnchor="120.0" AnchorPane.topAnchor="18.0" />
+                <ListView fx:id="list_char" layoutX="321.0" layoutY="18.0" prefHeight="200.0" prefWidth="120.0" AnchorPane.leftAnchor="240.0" AnchorPane.topAnchor="18.0" />
+                <Label text="FromNode" AnchorPane.topAnchor="0.0" />
+                <Label layoutX="174.0" text="ToNode" AnchorPane.leftAnchor="120.0" AnchorPane.topAnchor="0.0" />
+                <Label layoutX="321.0" text="Character" AnchorPane.leftAnchor="240.0" AnchorPane.topAnchor="0.0" />
+            </children>
+        </AnchorPane>
+        <Label layoutX="26.0" layoutY="313.0" text="Edges" AnchorPane.leftAnchor="12.0" AnchorPane.topAnchor="270.0" />
+        <ListView fx:id="list_edge" layoutX="25.0" layoutY="353.0" prefHeight="280.0" prefWidth="360.0" AnchorPane.leftAnchor="12.0" AnchorPane.topAnchor="294.0" />
+        <AnchorPane layoutX="400.0" layoutY="53.0" AnchorPane.leftAnchor="400.0" AnchorPane.topAnchor="54.0">
+            <children>
+                <Button fx:id="button_addNode" layoutX="14.0" mnemonicParsing="false" onMouseClicked="#onMouseClick_button_addNode" text="Add Node" AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="0.0" />
+                <Button fx:id="button_removeNode" disable="true" layoutX="14.0" layoutY="56.0" mnemonicParsing="false" onMouseClicked="#onMouseClick_button_removeNode" text="Remove Node" AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="48.0" />
+                <Button fx:id="button_addEdge" disable="true" layoutY="146.0" mnemonicParsing="false" onMouseClicked="#onMouseClick_button_addEdge" text="Add Edge" AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="96.0" />
+              <Button fx:id="button_removeEdge" disable="true" mnemonicParsing="false" onMouseClicked="#onMouseClick_button_removeEdge" text="Remove Edge" AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="144.0" />
+            </children>
+        </AnchorPane>
+      <Label layoutX="400.0" layoutY="270.0" text="Dot Notation" AnchorPane.leftAnchor="400.0" AnchorPane.topAnchor="270.0" />
+      <TextArea fx:id="text_dotNotation" layoutX="400.0" layoutY="294.0" prefHeight="280.0" prefWidth="360.0" AnchorPane.leftAnchor="400.0" AnchorPane.topAnchor="294.0" editable="false"/>
+    </children>
+</AnchorPane>
