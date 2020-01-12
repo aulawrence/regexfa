@@ -1,4 +1,4 @@
-package Test4.Parser;
+package RegexFA.Parser;
 
 import org.jetbrains.annotations.NotNull;
 

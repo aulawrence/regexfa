@@ -1,9 +1,9 @@
-package Test4.Model;
+package RegexFA.Model;
 
-import Test4.Alphabet;
-import Test4.Graph.Edge;
-import Test4.Graph.Graph;
-import Test4.Graph.Node;
+import RegexFA.Alphabet;
+import RegexFA.Graph.Edge;
+import RegexFA.Graph.Graph;
+import RegexFA.Graph.Node;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 

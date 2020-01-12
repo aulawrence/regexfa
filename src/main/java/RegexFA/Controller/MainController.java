@@ -1,9 +1,9 @@
-package Test4.Controller;
+package RegexFA.Controller;
 
-import Test4.Alphabet;
-import Test4.Graph.FAGraph;
-import Test4.Model.MainModel;
-import Test4.Parser.ParserException;
+import RegexFA.Alphabet;
+import RegexFA.Graph.FAGraph;
+import RegexFA.Model.MainModel;
+import RegexFA.Parser.ParserException;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.ChoiceBox;

@@ -1,4 +1,4 @@
-package Test4;
+package RegexFA;
 
 public interface Thunk<T> {
     T get();

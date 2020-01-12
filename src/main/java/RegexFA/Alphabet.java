@@ -1,4 +1,4 @@
-package Test4;
+package RegexFA;
 
 import java.util.*;
 

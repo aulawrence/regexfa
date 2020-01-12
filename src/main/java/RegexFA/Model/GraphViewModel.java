@@ -1,6 +1,6 @@
-package Test4.Model;
+package RegexFA.Model;
 
-import Test4.Graph.Graph;
+import RegexFA.Graph.Graph;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.image.Image;
 

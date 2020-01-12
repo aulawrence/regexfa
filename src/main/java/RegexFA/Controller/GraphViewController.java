@@ -1,11 +1,10 @@
-package Test4.Controller;
+package RegexFA.Controller;
 
-import Test4.Alphabet;
-import Test4.Graph.Graph;
-import Test4.Model.GraphViewModel;
+import RegexFA.Alphabet;
+import RegexFA.Graph.Graph;
+import RegexFA.Model.GraphViewModel;
 import javafx.fxml.FXML;
 import javafx.scene.image.ImageView;
-import javafx.scene.shape.SVGPath;
 
 import java.net.URL;
 import java.util.ResourceBundle;

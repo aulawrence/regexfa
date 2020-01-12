@@ -1,8 +1,8 @@
-package Test4.Parser;
-import Test4.Alphabet;
-import Test4.Graph.FAGraph;
-import Test4.Graph.Graph;
-import Test4.Graph.Node;
+package RegexFA.Parser;
+import RegexFA.Alphabet;
+import RegexFA.Graph.FAGraph;
+import RegexFA.Graph.Graph;
+import RegexFA.Graph.Node;
 import java.util.*;
 
 public class RegexParser {

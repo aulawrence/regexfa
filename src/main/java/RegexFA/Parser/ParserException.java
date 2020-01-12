@@ -1,4 +1,4 @@
-package Test4.Parser;
+package RegexFA.Parser;
 
 public class ParserException extends Exception {
     public ParserException(String message) {

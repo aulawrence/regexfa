@@ -1,8 +1,8 @@
-package Test4.Controller;
+package RegexFA.Controller;
 
-import Test4.Graph.Edge;
-import Test4.Graph.Node;
-import Test4.Model.GraphControlModel;
+import RegexFA.Graph.Edge;
+import RegexFA.Graph.Node;
+import RegexFA.Model.GraphControlModel;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;

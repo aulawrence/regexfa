@@ -3,7 +3,7 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<AnchorPane prefHeight="600.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/10.0.2-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="Test4.Controller.GraphControlController">
+<AnchorPane prefHeight="600.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/10.0.2-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="RegexFA.Controller.GraphControlController">
     <children>
         <Label layoutX="25.0" layoutY="19.0" text="Nodes" AnchorPane.leftAnchor="12.0" AnchorPane.topAnchor="12.0" />
         <AnchorPane layoutX="25.0" layoutY="53.0" AnchorPane.leftAnchor="12.0" AnchorPane.topAnchor="36.0">

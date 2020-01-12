@@ -1,4 +1,4 @@
-package Test4.Model;
+package RegexFA.Model;
 
 public abstract class Model {
 }

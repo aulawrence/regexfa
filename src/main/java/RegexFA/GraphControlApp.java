@@ -1,4 +1,4 @@
-package Test4;
+package RegexFA;
 
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;

@@ -1,6 +1,6 @@
-package Test4.Graph;
+package RegexFA.Graph;
 
-import Test4.Alphabet;
+import RegexFA.Alphabet;
 
 import java.util.Set;
 

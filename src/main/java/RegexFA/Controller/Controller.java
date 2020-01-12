@@ -1,6 +1,6 @@
-package Test4.Controller;
+package RegexFA.Controller;
 
-import Test4.Model.Model;
+import RegexFA.Model.Model;
 import javafx.fxml.Initializable;
 
 public abstract class Controller<M extends Model> implements Initializable {

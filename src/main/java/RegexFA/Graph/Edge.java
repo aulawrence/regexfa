@@ -1,4 +1,4 @@
-package Test4.Graph;
+package RegexFA.Graph;
 
 public class Edge {
     public final Node fromNode;

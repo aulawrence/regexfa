@@ -1,9 +1,9 @@
-package Test4.Model;
+package RegexFA.Model;
 
-import Test4.Alphabet;
-import Test4.Graph.FAGraph;
-import Test4.Parser.ParserException;
-import Test4.Parser.RegexParser;
+import RegexFA.Alphabet;
+import RegexFA.Graph.FAGraph;
+import RegexFA.Parser.ParserException;
+import RegexFA.Parser.RegexParser;
 
 public class MainModel extends Model {
     public FAGraph getGraph(String string, Alphabet alphabet) throws ParserException {

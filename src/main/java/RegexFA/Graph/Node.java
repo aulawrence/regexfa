@@ -1,4 +1,4 @@
-package Test4.Graph;
+package RegexFA.Graph;
 
 import java.util.Set;
 
