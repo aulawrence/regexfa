@@ -37,4 +37,4 @@ mvn clean compile
 mvn javafx:run
 ```
 
-![](images/screenshot1.png)
+![](image/screenshot1.png)
