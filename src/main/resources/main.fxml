@@ -11,17 +11,32 @@
         <Label layoutX="14.0" layoutY="113.0" text="Alphabet:" AnchorPane.leftAnchor="12.0" AnchorPane.topAnchor="113.0" />
         <ChoiceBox fx:id="choiceBox_alphabet" layoutX="83.0" layoutY="108.0" prefWidth="150.0" AnchorPane.leftAnchor="96.0" AnchorPane.topAnchor="108.0" />
         <Button fx:id="button_regex" layoutX="524.0" layoutY="145.0" mnemonicParsing="false" onMouseClicked="#onClick_buttonRegex" text="Enter" AnchorPane.rightAnchor="12.0" AnchorPane.topAnchor="108.0" />
-        <TextArea fx:id="textArea_display" editable="false" layoutX="14.0" layoutY="158.0" prefHeight="60.0" AnchorPane.leftAnchor="12.0" AnchorPane.rightAnchor="12.0" />
-        <SplitPane dividerPositions="0.3333, 0.6666" layoutX="71.0" layoutY="234.0" prefHeight="366.0" prefWidth="800.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="240.0">
-            <ScrollPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">
-                <ImageView fx:id="image_nfa" preserveRatio="true" />
-            </ScrollPane>
-            <ScrollPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">
-                <ImageView fx:id="image_dfa" preserveRatio="true" />
-            </ScrollPane>
-            <ScrollPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">
-                <ImageView fx:id="image_min_dfa" preserveRatio="true" />
-            </ScrollPane>
-        </SplitPane>
+        <Label layoutX="14.0" layoutY="142.0" text="Graph (Dot Notation):" AnchorPane.leftAnchor="12.0" AnchorPane.topAnchor="144.0" />
+        <TextArea fx:id="textArea_display" editable="false" layoutX="14.0" layoutY="158.0" prefHeight="72.0" AnchorPane.leftAnchor="12.0" AnchorPane.rightAnchor="12.0" AnchorPane.topAnchor="168.0" />
+        <GridPane prefHeight="366.0" prefWidth="800.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="240.0">
+            <columnConstraints>
+                <ColumnConstraints hgrow="NEVER" percentWidth="33.3" />
+                <ColumnConstraints hgrow="NEVER" percentWidth="33.3" />
+                <ColumnConstraints hgrow="NEVER" percentWidth="33.3" />
+            </columnConstraints>
+            <rowConstraints>
+                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="NEVER" />
+                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="ALWAYS" />
+            </rowConstraints>
+            <children>
+                <ScrollPane minHeight="0.0" minWidth="0.0" onMouseClicked="#onClick_NFA" prefHeight="160.0" prefWidth="100.0" GridPane.columnIndex="0" GridPane.rowIndex="1">
+                    <ImageView fx:id="image_nfa" preserveRatio="true" />
+                </ScrollPane>
+                <ScrollPane minHeight="0.0" minWidth="0.0" onMouseClicked="#onClick_DFA" prefHeight="160.0" prefWidth="100.0" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                    <ImageView fx:id="image_dfa" preserveRatio="true" />
+                </ScrollPane>
+                <ScrollPane minHeight="0.0" minWidth="0.0" onMouseClicked="#onClick_MinDFA" prefHeight="160.0" prefWidth="100.0" GridPane.columnIndex="2" GridPane.rowIndex="1">
+                    <ImageView fx:id="image_min_dfa" preserveRatio="true" />
+                </ScrollPane>
+                <Label fx:id="label_nfa" alignment="CENTER" maxWidth="Infinity" onMouseClicked="#onClick_NFA" text="NFA" />
+                <Label fx:id="label_dfa" alignment="CENTER" maxWidth="Infinity" onMouseClicked="#onClick_DFA" text="DFA" GridPane.columnIndex="1" />
+                <Label fx:id="label_min_dfa" alignment="CENTER" maxWidth="Infinity" onMouseClicked="#onClick_MinDFA" text="Min-DFA" GridPane.columnIndex="2" />
+            </children>
+        </GridPane>
     </children>
 </AnchorPane>

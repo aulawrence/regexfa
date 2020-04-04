@@ -6,20 +6,6 @@ import RegexFA.Graph.Node;
 import java.util.*;
 
 public class RegexParser {
-//    private final String pattern;
-//    private final Alphabet alphabet;
-
-    //  <expression> ::= <term> '|' <expression>
-    //                 | <term>
-    //
-    //  <term>       ::= <factor> <term>
-    //                 | <factor>
-    //
-    //  <factor>     ::= <atom> '*'
-    //                 | <atom>
-    //
-    //  <atom>       ::= <char>
-    //                 | '(' <expression> ')'
 
     private RegexParser() {
     }
@@ -72,10 +58,6 @@ public class RegexParser {
             throw new ParserException(String.format("Unmatched brackets: Missing %d closing brackets.", bracketCount));
         }
     }
-
-//    public static Expression parse(String string, Alphabet alphabet){
-//
-//    }
 
     private static boolean addModifier(Graph graph, Node prev, Node atomBegin, Character ch) {
         if (ch != null) {
