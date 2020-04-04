@@ -56,13 +56,13 @@ public class FAGraph extends Graph {
                 for (int i = 0; i < s.length(); i++){
                     sb.append(s.charAt(i));
                     if ((i+1) % k == 0){
-                        sb.append("\n");
+                        sb.append("\\n");
                     }
                 }
                 sb.append("\"");
             }
             if (node.isAccept()){
-                sb.append(" shape=doublecircle");
+                sb.append(" peripheries=2");
             }
             sb.append("];\n");
         }
