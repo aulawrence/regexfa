@@ -3,6 +3,8 @@ import RegexFA.Alphabet;
 import RegexFA.Graph.FAGraph;
 import RegexFA.Graph.Graph;
 import RegexFA.Graph.Node;
+import RegexFA.Graph.SimpleNode;
+
 import java.util.*;
 
 public class RegexParser {
@@ -85,7 +87,7 @@ public class RegexParser {
         FAGraph graph = new FAGraph(alphabet);
         Stack<Node> groupStack = new Stack<>();
         Stack<Node> orStack = new Stack<>();
-        Node startNode = graph.addNode();
+        SimpleNode startNode = graph.addNode();
         graph.setRootNode(startNode);
         groupStack.push(startNode);
         Node startNode2 = graph.addNode();
@@ -165,18 +167,16 @@ public class RegexParser {
     }
 
     public static void main(String[] args) {
-//        String pattern = "(0|1(01*0)*1)*";
-//        String pattern = "0*1*";
-//        String pattern = "1|1+|0|0+";
-        String pattern = "010|101";
+        String pattern = "(0|1(01*0)*1)*";
         try {
             verify(pattern, Alphabet.Binary);
             FAGraph g = toGraph(pattern, Alphabet.Binary);
-            System.out.println(g.toDotString());
             FAGraph h = FAGraph.toDFA(g);
-            System.out.println(h.toDotString());
             FAGraph i = FAGraph.minimize(h);
-            System.out.println(i.toDotString());
+            Set<Node> colorNode = h.getRootNode().getEdges()[Alphabet.Binary.invertMap.get('1')].getNodeSet();
+            System.out.println(g.toDotString(colorNode));
+            System.out.println(h.toDotString(colorNode));
+            System.out.println(i.toDotString(colorNode));
         } catch (ParserException e) {
             e.printStackTrace();
         }

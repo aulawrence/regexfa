@@ -92,9 +92,9 @@ public class Graph{
         return sb.toString();
     }
 
-    public BufferedImage getImage() {
+    public static BufferedImage getImage(String dotString) {
         try {
-            MutableGraph g = new Parser().read(toDotString());
+            MutableGraph g = new Parser().read(dotString);
             return Graphviz.fromGraph(g).engine(Engine.DOT).render(Format.PNG).toImage();
         } catch (IOException e) {
             e.printStackTrace();

@@ -2,25 +2,24 @@ package RegexFA.Controller;
 
 import RegexFA.Alphabet;
 import RegexFA.Model.MainModel;
-import RegexFA.Parser.ParserException;
+import javafx.application.Platform;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.fxml.FXML;
-import javafx.scene.control.Button;
-import javafx.scene.control.ChoiceBox;
-import javafx.scene.control.Label;
-import javafx.scene.control.TextArea;
+import javafx.scene.control.*;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.text.Text;
+import javafx.scene.text.TextFlow;
 
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.ResourceBundle;
 
 import static RegexFA.Model.MainModel.GraphChoice.*;
 
 
 public class MainController extends Controller<MainModel> {
-    public TextArea textArea_regex;
-    public Button button_regex;
     public TextArea textArea_display;
     public ChoiceBox<Alphabet> choiceBox_alphabet;
     public ImageView image_nfa;
@@ -29,6 +28,20 @@ public class MainController extends Controller<MainModel> {
     public Label label_nfa;
     public Label label_dfa;
     public Label label_min_dfa;
+    public TextField textField_regex;
+    public Text text_regex;
+    public Text text_errRegex;
+    public Button button_regex;
+    public TextField textField_testString;
+    public Text text_errTestString;
+    public Button button_testString;
+    public TextFlow textFlow_testString;
+
+    private final ArrayList<Text> testStringArrayList;
+
+
+    private boolean regexEditing = true;
+    private boolean testStringEditing = true;
 
     public MainController() {
         this(new MainModel());
@@ -36,47 +49,72 @@ public class MainController extends Controller<MainModel> {
 
     protected MainController(MainModel model) {
         super(model);
+        testStringArrayList = new ArrayList<>();
     }
 
     @FXML
     private void onClick_buttonRegex(MouseEvent event) {
-        String s = textArea_regex.getText();
-        Alphabet alphabet = choiceBox_alphabet.getSelectionModel().getSelectedItem();
-        try {
-            model.generate_graph(s, alphabet);
-            textArea_display.setText(model.getDotString());
-            image_nfa.setImage(SwingFXUtils.toFXImage(model.getImage(NFA), null));
-            image_dfa.setImage(SwingFXUtils.toFXImage(model.getImage(DFA), null));
-            image_min_dfa.setImage(SwingFXUtils.toFXImage(model.getImage(MinDFA), null));
-        } catch (ParserException e) {
-            textArea_display.setText(e.getMessage());
-            image_nfa.setImage(null);
-            image_dfa.setImage(null);
-            image_min_dfa.setImage(null);
-        }
+        toggleRegex();
+    }
+
+    @FXML
+    private void onClick_buttonTestString(MouseEvent event) {
+        toggleTestString();
     }
 
     public void onClick_NFA(MouseEvent mouseEvent) {
         model.setSelection(NFA);
-        updateText();
+        updateTextArea();
         updateLabels();
     }
 
     public void onClick_DFA(MouseEvent mouseEvent) {
         model.setSelection(DFA);
-        updateText();
+        updateTextArea();
         updateLabels();
     }
 
     public void onClick_MinDFA(MouseEvent mouseEvent) {
         model.setSelection(MinDFA);
-        updateText();
+        updateTextArea();
         updateLabels();
     }
 
-    private void updateText() {
-        if (model.isSuccess()) {
+    private void toggleRegex() {
+        if (regexEditing) {
+            model.setRegex(textField_regex.getText());
+            updateRegex();
+            updateImages();
+            updateTextArea();
+        } else {
+            updateRegex();
+        }
+    }
+
+    private void toggleTestString() {
+        if (testStringEditing) {
+            model.setTestString(textField_testString.getText());
+        }
+        updateTestString();
+    }
+
+    private void updateTextArea() {
+        if (model.isRegexSuccess()) {
             textArea_display.setText(model.getDotString());
+        } else {
+            textArea_display.setText("");
+        }
+    }
+
+    private void updateImages() {
+        if (model.isRegexSuccess()) {
+            image_nfa.setImage(SwingFXUtils.toFXImage(model.getImage(NFA), null));
+            image_dfa.setImage(SwingFXUtils.toFXImage(model.getImage(DFA), null));
+            image_min_dfa.setImage(SwingFXUtils.toFXImage(model.getImage(MinDFA), null));
+        } else {
+            image_nfa.setImage(null);
+            image_dfa.setImage(null);
+            image_min_dfa.setImage(null);
         }
     }
 
@@ -105,10 +143,155 @@ public class MainController extends Controller<MainModel> {
         }
     }
 
+    private void updateRegex() {
+        if (regexEditing) {
+            if (model.isRegexSuccess()) {
+                button_regex.setText("Edit");
+                textField_regex.setVisible(false);
+                text_regex.setVisible(true);
+                text_regex.setText(model.getRegex());
+                text_errRegex.setVisible(false);
+                regexEditing = false;
+
+                textField_testString.setDisable(false);
+                button_testString.setDisable(false);
+                if (!model.getTestString().equals("")) {
+                    toggleTestString();
+                    toggleTestString();
+                }
+            } else {
+                text_errRegex.setVisible(true);
+                text_errRegex.setText(model.getRegexErrMsg());
+            }
+        } else {
+            button_regex.setText("Ok");
+            textField_regex.setVisible(true);
+            text_regex.setVisible(false);
+            regexEditing = true;
+
+            textField_testString.setDisable(true);
+            button_testString.setDisable(true);
+        }
+    }
+
+    private void updateTestString() {
+        if (testStringEditing) {
+            if (model.isTestStringSuccess()) {
+                button_testString.setText("Edit");
+                textField_testString.setVisible(false);
+                text_errTestString.setVisible(false);
+                testStringEditing = false;
+
+                String testString = model.getTestString();
+                model.setTestStringPos(testString.length() - 1);
+                testStringArrayList.clear();
+                for (int i = 0; i < testString.length(); i++) {
+                    int pos = i;
+                    Text node = new Text(Character.toString(testString.charAt(i)));
+                    node.setOnMouseClicked(event -> {
+                        model.setTestStringPos(pos);
+                        updatePos();
+                    });
+                    testStringArrayList.add(node);
+                }
+                textFlow_testString.getChildren().setAll(testStringArrayList);
+                textFlow_testString.setVisible(true);
+                updatePos();
+            } else {
+                text_errTestString.setVisible(true);
+                text_errTestString.setText(model.getTestStringErrorMsg());
+            }
+        } else {
+            button_testString.setText("Ok");
+            textField_testString.setVisible(true);
+            textFlow_testString.setVisible(false);
+            testStringEditing = true;
+        }
+    }
+
+    private void updatePos() {
+        int pos = model.getTestStringPos();
+
+        if (pos == -1) {
+            for (int i = 0; i < testStringArrayList.size(); i++) {
+                testStringArrayList.get(i).styleProperty().setValue("");
+            }
+        } else {
+            for (int i = 0; i < testStringArrayList.size(); i++) {
+                if (i < pos) {
+                    testStringArrayList.get(i).styleProperty().setValue("-fx-underline:true");
+                } else if (i == pos) {
+                    testStringArrayList.get(i).styleProperty().setValue("-fx-font-weight: bold; -fx-underline:true");
+                } else {
+                    testStringArrayList.get(i).styleProperty().setValue("");
+                }
+            }
+
+        }
+        updateTextArea();
+        updateImages();
+        Platform.runLater(() -> textFlow_testString.requestFocus());
+    }
+
+    public void onKeyPressed_textFlowTestString(KeyEvent keyEvent) {
+        if (model.isRegexSuccess() && model.isTestStringSuccess()) {
+            switch (keyEvent.getCode()) {
+                case UP:
+                case DOWN:
+                case LEFT:
+                case RIGHT:
+                    keyEvent.consume();
+                    break;
+            }
+        }
+    }
+
+    public void onKeyReleased_textFlowTestString(KeyEvent keyEvent) {
+        if (model.isRegexSuccess() && model.isTestStringSuccess()) {
+            int curr = model.getTestStringPos();
+            int target = curr;
+            int lim = model.getTestString().length() - 1;
+            switch (keyEvent.getCode()) {
+                case UP:
+                    target = -1;
+                    break;
+                case DOWN:
+                    target = lim;
+                    break;
+                case LEFT:
+                    target = curr - 1;
+                    break;
+                case RIGHT:
+                    target = curr + 1;
+                    break;
+            }
+            target = Integer.max(-1, Integer.min(target, lim));
+            if (target != curr) {
+                model.setTestStringPos(target);
+                updatePos();
+            }
+        }
+    }
+
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         choiceBox_alphabet.getItems().setAll(Alphabet.values());
+        choiceBox_alphabet.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
+            if (newValue != oldValue) {
+                model.setAlphabet(newValue);
+                if (!model.getRegex().equals("")) {
+                    toggleRegex();
+                    toggleRegex();
+                }
+            }
+        });
         choiceBox_alphabet.getSelectionModel().select(Alphabet.Binary);
+
+        text_regex.setVisible(false);
+        text_errRegex.setVisible(false);
+        textFlow_testString.setVisible(false);
+        text_errTestString.setVisible(false);
+
         updateLabels();
     }
 

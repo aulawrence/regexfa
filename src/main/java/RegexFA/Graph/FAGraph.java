@@ -6,29 +6,29 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class FAGraph extends Graph {
-    private Node rootNode;
+    private SimpleNode rootNode;
 
     public FAGraph(Alphabet alphabet) {
         super(alphabet);
     }
 
-    public Node getRootNode() {
+    public SimpleNode getRootNode() {
         return rootNode;
     }
 
-    public void setRootNode(Node rootNode) {
+    public void setRootNode(SimpleNode rootNode) {
         this.rootNode = rootNode;
     }
 
     @Override
-    public Node addNode() {
+    public SimpleNode addNode() {
         String idString = getIDString(getNextID());
         SimpleNode node = new SimpleNode(this, idString);
         this.nodeList.add(node);
         return node;
     }
 
-    public Node addNode(Set<Node> nodeSet) {
+    public SimpleNode addNode(Set<Node> nodeSet) {
         String idString = getIDString(getNextID());
         SimpleNode node = new SimpleNode(this, idString, nodeSet);
         this.nodeList.add(node);
@@ -44,13 +44,27 @@ public class FAGraph extends Graph {
     }
 
     public String toDotString() {
+        return toDotString(null);
+    }
+
+    public String toDotString(Set<Node> colorNodeSet) {
         StringBuilder sb = new StringBuilder();
         sb.append("digraph {\n");
         sb.append("\n");
         for (Node node : nodeList) {
             sb.append(String.format("  %s [width=1, height=1", node.getId()));
             if (node.getNodeSet() != null){
-                String s = node.getNodeSet().toString();
+                String s = "{" + node.getNodeSet().stream().map(
+                        (node2)-> {
+                            if (node2.getNodeSet() != null){
+                                return "{" +
+                                node2.getNodeSet().stream().map(Node::getId).collect(Collectors.joining(", ")) +
+                                "}";
+                            } else {
+                                return node2.getId();
+                            }
+                        }
+                ).collect(Collectors.joining(", ")) + "}";
                 sb.append(" label=\"");
                 int k = (int) Math.sqrt(s.length())*2+1;
                 for (int i = 0; i < s.length(); i++){
@@ -60,6 +74,14 @@ public class FAGraph extends Graph {
                     }
                 }
                 sb.append("\"");
+
+                if (colorNodeSet != null &&  (node.getNodeSet() == colorNodeSet || node.getNodeSet().stream().anyMatch((x) -> x.getNodeSet() == colorNodeSet))) {
+                    sb.append(", color=red");
+                }
+            } else {
+                if (colorNodeSet != null && colorNodeSet.contains(node)) {
+                    sb.append(", color=red");
+                }
             }
             if (node.isAccept()){
                 sb.append(" peripheries=2");
@@ -113,7 +135,7 @@ public class FAGraph extends Graph {
                 nodeQueue.addAll(listMap.get(currNode).getOrDefault(Alphabet.Empty, List.of()));
             }
         }
-        Node rootNode = dfa.addNode(currSet);
+        SimpleNode rootNode = dfa.addNode(currSet);
         for (Node node: currSet){
             if (node.isAccept()){
                 rootNode.setAccept(true);
@@ -230,7 +252,7 @@ public class FAGraph extends Graph {
             boolean isRoot = false;
             for (Node node: dfa.getNodeList()) {
                 if (currPartitions.get(node) == p){
-                    nodeSet.addAll(node.getNodeSet());
+                    nodeSet.add(node);
                     if (node.isAccept()){
                         isAccept = true;
                     }
@@ -240,7 +262,7 @@ public class FAGraph extends Graph {
                 }
             }
             if (!nodeSet.isEmpty()){
-                Node newNode = graph.addNode(nodeSet);
+                SimpleNode newNode = graph.addNode(nodeSet);
                 if (isAccept){
                     newNode.setAccept(true);
                 }
