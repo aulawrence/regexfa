@@ -1,11 +1,11 @@
 package RegexFA.Graph;
 
-public class Edge {
-    public final Node fromNode;
-    public final Node toNode;
+public class Edge<N extends Node> {
+    public final N fromNode;
+    public final N toNode;
     public final Character label;
 
-    public Edge(Node fromNode, Node toNode, char label) {
+    public Edge(N fromNode, N toNode, char label) {
         this.fromNode = fromNode;
         this.toNode = toNode;
         this.label = label;
@@ -13,10 +13,10 @@ public class Edge {
 
     @Override
     public boolean equals(Object obj) {
-        if (obj == null || obj.getClass() != Edge.class) {
+        if (!(obj instanceof Edge)) {
             return false;
         }
-        Edge other = (Edge) obj;
+        Edge<?> other = (Edge<?>) obj;
         return this.fromNode.equals(other.fromNode) &&
                 this.toNode.equals(other.toNode) &&
                 this.label.equals(other.label);

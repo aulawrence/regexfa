@@ -1,18 +1,20 @@
 package RegexFA.Parser;
-import RegexFA.Alphabet;
-import RegexFA.Graph.FAGraph;
-import RegexFA.Graph.Graph;
-import RegexFA.Graph.Node;
-import RegexFA.Graph.SimpleNode;
 
-import java.util.*;
+import RegexFA.Alphabet;
+import RegexFA.Graph.DFAGraph;
+import RegexFA.Graph.NFAGraph;
+import RegexFA.Graph.Node;
+
+import java.util.HashSet;
+import java.util.Set;
+import java.util.Stack;
 
 public class RegexParser {
 
     private RegexParser() {
     }
 
-    public static void verify(String string, Alphabet alphabet) throws ParserException{
+    public static void verify(String string, Alphabet alphabet) throws ParserException {
         HashSet<Character> s = new HashSet<>(alphabet.alphabetSet);
         s.add('(');
         s.add(')');
@@ -35,7 +37,7 @@ public class RegexParser {
                     break;
                 case ')':
                     bracketCount--;
-                    if (bracketCount < 0){
+                    if (bracketCount < 0) {
                         throw new ParserException(String.format("')' at position %d is not valid. Cannot match opening bracket.", i));
                     }
                     prevAtom = true;
@@ -56,12 +58,12 @@ public class RegexParser {
                     break;
             }
         }
-        if (bracketCount != 0){
+        if (bracketCount != 0) {
             throw new ParserException(String.format("Unmatched brackets: Missing %d closing brackets.", bracketCount));
         }
     }
 
-    private static boolean addModifier(Graph graph, Node prev, Node atomBegin, Character ch) {
+    private static boolean addModifier(NFAGraph graph, Node prev, Node atomBegin, Character ch) {
         if (ch != null) {
             switch (ch) {
                 case '+':
@@ -82,12 +84,12 @@ public class RegexParser {
         }
     }
 
-    public static FAGraph toGraph(String string, Alphabet alphabet) throws ParserException {
+    public static NFAGraph toGraph(String string, Alphabet alphabet) throws ParserException {
         verify(string, alphabet);
-        FAGraph graph = new FAGraph(alphabet);
+        NFAGraph graph = new NFAGraph(alphabet);
         Stack<Node> groupStack = new Stack<>();
         Stack<Node> orStack = new Stack<>();
-        SimpleNode startNode = graph.addNode();
+        Node startNode = graph.addNode();
         graph.setRootNode(startNode);
         groupStack.push(startNode);
         Node startNode2 = graph.addNode();
@@ -170,9 +172,9 @@ public class RegexParser {
         String pattern = "(0|1(01*0)*1)*";
         try {
             verify(pattern, Alphabet.Binary);
-            FAGraph g = toGraph(pattern, Alphabet.Binary);
-            FAGraph h = FAGraph.toDFA(g);
-            FAGraph i = FAGraph.minimize(h);
+            NFAGraph g = toGraph(pattern, Alphabet.Binary);
+            DFAGraph h = g.toDFA();
+            DFAGraph i = h.minimize();
             Set<Node> colorNode = h.getRootNode().getEdges()[Alphabet.Binary.invertMap.get('1')].getNodeSet();
             System.out.println(g.toDotString(colorNode));
             System.out.println(h.toDotString(colorNode));

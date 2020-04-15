@@ -3,10 +3,11 @@ package RegexFA.Controller;
 import RegexFA.Alphabet;
 import RegexFA.Model.MainModel;
 import javafx.application.Platform;
+import javafx.embed.swing.SwingFXUtils;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
-import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.image.WritableImage;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.text.Text;
@@ -42,6 +43,9 @@ public class MainController extends Controller<MainModel> {
     private final ArrayList<Text> testStringArrayList;
     private final ExecutorService executor;
 
+    private WritableImage imageBuffer_nfa;
+    private WritableImage imageBuffer_dfa;
+    private WritableImage imageBuffer_min_dfa;
 
     private boolean regexEditing = true;
     private boolean testStringEditing = true;
@@ -139,15 +143,17 @@ public class MainController extends Controller<MainModel> {
             executor.execute(
                     () -> {
                         try {
-                            Image i_nfa = new Image(model.getImageStream(NFA));
-                            Image i_dfa = new Image(model.getImageStream(DFA));
-                            Image i_min_dfa = new Image(model.getImageStream(MinDFA));
-
+                            imageBuffer_nfa = SwingFXUtils.toFXImage(model.getImage(NFA), imageBuffer_nfa);
+                            imageBuffer_dfa = SwingFXUtils.toFXImage(model.getImage(DFA), imageBuffer_dfa);
+                            imageBuffer_min_dfa = SwingFXUtils.toFXImage(model.getImage(MinDFA), imageBuffer_min_dfa);
                             Platform.runLater(
                                     () -> {
-                                        image_nfa.setImage(i_nfa);
-                                        image_dfa.setImage(i_dfa);
-                                        image_min_dfa.setImage(i_min_dfa);
+                                        image_nfa.setImage(imageBuffer_nfa);
+                                        image_dfa.setImage(imageBuffer_dfa);
+                                        image_min_dfa.setImage(imageBuffer_min_dfa);
+                                        image_nfa.setVisible(true);
+                                        image_dfa.setVisible(true);
+                                        image_min_dfa.setVisible(true);
                                     }
                             );
                         } catch (Exception e) {
@@ -156,9 +162,9 @@ public class MainController extends Controller<MainModel> {
                     }
             );
         } else {
-            image_nfa.setImage(null);
-            image_dfa.setImage(null);
-            image_min_dfa.setImage(null);
+            image_nfa.setVisible(false);
+            image_dfa.setVisible(false);
+            image_min_dfa.setVisible(false);
         }
     }
 
@@ -256,22 +262,18 @@ public class MainController extends Controller<MainModel> {
     private void updatePos() {
         int pos = model.getTestStringPos();
 
-        if (pos == -1) {
-            for (int i = 0; i < testStringArrayList.size(); i++) {
+
+        for (int i = 0; i < testStringArrayList.size(); i++) {
+            if (i < pos) {
+                testStringArrayList.get(i).styleProperty().setValue("-fx-underline:true");
+            } else if (i == pos) {
+                testStringArrayList.get(i).styleProperty().setValue("-fx-font-weight: bold; -fx-underline:true");
+            } else {
                 testStringArrayList.get(i).styleProperty().setValue("");
             }
-        } else {
-            for (int i = 0; i < testStringArrayList.size(); i++) {
-                if (i < pos) {
-                    testStringArrayList.get(i).styleProperty().setValue("-fx-underline:true");
-                } else if (i == pos) {
-                    testStringArrayList.get(i).styleProperty().setValue("-fx-font-weight: bold; -fx-underline:true");
-                } else {
-                    testStringArrayList.get(i).styleProperty().setValue("");
-                }
-            }
-
         }
+
+
         updateTextArea();
         updateImages();
         textFlow_testString.requestFocus();

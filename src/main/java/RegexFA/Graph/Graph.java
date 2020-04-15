@@ -7,19 +7,17 @@ import guru.nidi.graphviz.engine.Graphviz;
 import guru.nidi.graphviz.model.MutableGraph;
 import guru.nidi.graphviz.parse.Parser;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
+import java.awt.image.BufferedImage;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class Graph {
+public abstract class Graph<N extends Node> {
 
-    private final Alphabet alphabet;
-    protected final ArrayList<Node> nodeList;
-    protected final ArrayList<Edge> edgeList;
+    protected final Alphabet alphabet;
+    protected final ArrayList<N> nodeList;
+    protected final ArrayList<Edge<N>> edgeList;
     private int id;
 
     protected static String getIDString(int id) {
@@ -53,23 +51,18 @@ public class Graph {
         this.id = 0;
     }
 
-    public Node addNode() {
-        String idString = getIDString(getNextID());
-        Node node = new Node(this, idString);
-        this.nodeList.add(node);
-        return node;
-    }
+    public abstract N addNode();
 
-    public List<Edge> removeNode(Node node) {
+    public List<Edge<N>> removeNode(N node) {
         this.nodeList.remove(node);
-        List<Edge> edges = this.edgeList.stream().filter(x -> x.fromNode == node || x.toNode == node).collect(Collectors.toList());
+        List<Edge<N>> edges = this.edgeList.stream().filter(x -> x.fromNode == node || x.toNode == node).collect(Collectors.toList());
         this.edgeList.removeAll(edges);
         return edges;
     }
 
-    public Edge addEdge(Node fromNode, Node toNode, char ch) {
+    public Edge<N> addEdge(N fromNode, N toNode, char ch) {
         if (fromNode.getGraph() != this || toNode.getGraph() != this) throw new AssertionError();
-        Edge edge = new Edge(fromNode, toNode, ch);
+        Edge<N> edge = new Edge<>(fromNode, toNode, ch);
         if (!this.edgeList.contains(edge)) {
             this.edgeList.add(edge);
             return edge;
@@ -77,7 +70,7 @@ public class Graph {
         return null;
     }
 
-    public void removeEdge(Edge edge) {
+    public void removeEdge(Edge<N> edge) {
         this.edgeList.remove(edge);
     }
 
@@ -89,7 +82,7 @@ public class Graph {
             sb.append(String.format("  %s [width=1, height=1];\n", node.getId()));
         }
         sb.append("\n");
-        for (Edge edge : edgeList) {
+        for (Edge<N> edge : edgeList) {
             sb.append(String.format("  %s->%s[label=\"%s\"];\n", edge.fromNode.getId(), edge.toNode.getId(), edge.label));
         }
         sb.append("\n");
@@ -97,12 +90,10 @@ public class Graph {
         return sb.toString();
     }
 
-    public static InputStream getImageStream(String dotString) {
+    public static BufferedImage getImage(String dotString) {
         try {
-            ByteArrayOutputStream os = new ByteArrayOutputStream();
             MutableGraph g = new Parser().read(dotString);
-            Graphviz.fromGraph(g).engine(Engine.DOT).render(Format.PNG).toOutputStream(os);
-            return new ByteArrayInputStream(os.toByteArray());
+            return Graphviz.fromGraph(g).engine(Engine.DOT).render(Format.PNG).toImage();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -113,11 +104,11 @@ public class Graph {
         return alphabet;
     }
 
-    public List<Node> getNodeList() {
+    public List<N> getNodeList() {
         return nodeList;
     }
 
-    public List<Edge> getEdgeList() {
+    public List<Edge<N>> getEdgeList() {
         return edgeList;
     }
 

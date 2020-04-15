@@ -1,14 +1,11 @@
 package RegexFA.Model;
 
 import RegexFA.Alphabet;
-import RegexFA.Graph.FAGraph;
-import RegexFA.Graph.Graph;
-import RegexFA.Graph.Node;
-import RegexFA.Graph.SimpleNode;
+import RegexFA.Graph.*;
 import RegexFA.Parser.ParserException;
 import RegexFA.Parser.RegexParser;
 
-import java.io.InputStream;
+import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Set;
 
@@ -30,9 +27,9 @@ public class MainModel extends Model {
     private final ArrayList<Set<Node>> colorNodeList;
     private GraphChoice selection;
 
-    private FAGraph nfa;
-    private FAGraph dfa;
-    private FAGraph min_dfa;
+    private NFAGraph nfa;
+    private DFAGraph dfa;
+    private DFAGraph min_dfa;
 
 
     public MainModel() {
@@ -49,8 +46,8 @@ public class MainModel extends Model {
             regexSuccess = false;
             regexErrMsg = "";
             nfa = RegexParser.toGraph(regex, alphabet);
-            dfa = FAGraph.toDFA(nfa);
-            min_dfa = FAGraph.minimize(dfa);
+            dfa = nfa.toDFA();
+            min_dfa = dfa.minimize();
             regexSuccess = true;
         } catch (ParserException e) {
             regexErrMsg = e.getMessage();
@@ -72,16 +69,14 @@ public class MainModel extends Model {
     private synchronized void generateColorNodeList() {
         if (regexSuccess && testStringSuccess) {
             colorNodeList.clear();
-            SimpleNode curr = dfa.getRootNode();
+            DFANode curr = dfa.getRootNode();
             int i = 0;
             if (curr != null) {
-                System.out.printf("%s, %s%n", curr, curr.getNodeSet());
                 colorNodeList.add(curr.getNodeSet());
             }
             while (curr != null && i < testString.length()) {
-                curr = (SimpleNode) curr.getEdges()[alphabet.invertMap.get(testString.charAt(i))];
+                curr = dfa.moveFromNode(curr, testString.charAt(i));
                 if (curr != null) {
-                    System.out.printf("%s, %s%n", curr, curr.getNodeSet());
                     colorNodeList.add(curr.getNodeSet());
                 }
                 i++;
@@ -112,8 +107,8 @@ public class MainModel extends Model {
         }
     }
 
-    public synchronized InputStream getImageStream(GraphChoice graphChoice) {
-        return Graph.getImageStream(getDotString(graphChoice));
+    public synchronized BufferedImage getImage(GraphChoice graphChoice) {
+        return Graph.getImage(getDotString(graphChoice));
     }
 
     public synchronized GraphChoice getSelection() {

@@ -1,25 +1,26 @@
 package RegexFA.Graph;
 
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class Node {
-    private final Graph graph;
+    private final Graph<? extends Node> graph;
     private final String id;
     private final Set<Node> nodeSet;
     private boolean accept;
 
-    public Node(Graph graph, String id) {
+    public Node(Graph<? extends Node> graph, String id) {
         this(graph, id, null);
     }
 
-    public Node(Graph graph, String id, Set<Node> nodeSet) {
+    public Node(Graph<? extends Node> graph, String id, Set<Node> nodeSet) {
         this.graph = graph;
         this.id = id;
         this.nodeSet = nodeSet;
         this.accept = false;
     }
 
-    public Graph getGraph() {
+    public Graph<? extends Node> getGraph() {
         return graph;
     }
 
@@ -39,9 +40,21 @@ public class Node {
         this.accept = accept;
     }
 
+    public String toRepr() {
+        StringBuilder sb = new StringBuilder();
+        if (nodeSet == null) {
+            sb.append(id);
+        } else {
+            sb.append("{");
+            sb.append(this.nodeSet.stream().map(Node::toRepr).collect(Collectors.joining(", ")));
+            sb.append("}");
+        }
+        return sb.toString();
+    }
+
     @Override
     public String toString() {
-        return "Node{" + id + '}';
+        return "Node(" + toRepr() + ")";
     }
 
     @Override
