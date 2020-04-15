@@ -1,16 +1,21 @@
 package RegexFA.Graph;
 
 import RegexFA.Alphabet;
-import guru.nidi.graphviz.engine.*;
+import guru.nidi.graphviz.engine.Engine;
+import guru.nidi.graphviz.engine.Format;
+import guru.nidi.graphviz.engine.Graphviz;
 import guru.nidi.graphviz.model.MutableGraph;
 import guru.nidi.graphviz.parse.Parser;
 
-import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.*;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.stream.Collectors;
 
-public class Graph{
+public class Graph {
 
     private final Alphabet alphabet;
     protected final ArrayList<Node> nodeList;
@@ -37,7 +42,7 @@ public class Graph{
         return sb.toString();
     }
 
-    protected int getNextID(){
+    protected int getNextID() {
         return ++this.id;
     }
 
@@ -92,10 +97,12 @@ public class Graph{
         return sb.toString();
     }
 
-    public static BufferedImage getImage(String dotString) {
+    public static InputStream getImageStream(String dotString) {
         try {
+            ByteArrayOutputStream os = new ByteArrayOutputStream();
             MutableGraph g = new Parser().read(dotString);
-            return Graphviz.fromGraph(g).engine(Engine.DOT).render(Format.PNG).toImage();
+            Graphviz.fromGraph(g).engine(Engine.DOT).render(Format.PNG).toOutputStream(os);
+            return new ByteArrayInputStream(os.toByteArray());
         } catch (IOException e) {
             e.printStackTrace();
         }

@@ -3,9 +3,9 @@ package RegexFA.Controller;
 import RegexFA.Alphabet;
 import RegexFA.Model.MainModel;
 import javafx.application.Platform;
-import javafx.embed.swing.SwingFXUtils;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
+import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
@@ -15,6 +15,8 @@ import javafx.scene.text.TextFlow;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.ResourceBundle;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import static RegexFA.Model.MainModel.GraphChoice.*;
 
@@ -38,6 +40,7 @@ public class MainController extends Controller<MainModel> {
     public TextFlow textFlow_testString;
 
     private final ArrayList<Text> testStringArrayList;
+    private final ExecutorService executor;
 
 
     private boolean regexEditing = true;
@@ -50,6 +53,7 @@ public class MainController extends Controller<MainModel> {
     protected MainController(MainModel model) {
         super(model);
         testStringArrayList = new ArrayList<>();
+        executor = Executors.newFixedThreadPool(3);
     }
 
     @FXML
@@ -63,29 +67,45 @@ public class MainController extends Controller<MainModel> {
     }
 
     public void onClick_NFA(MouseEvent mouseEvent) {
-        model.setSelection(NFA);
-        updateTextArea();
-        updateLabels();
+        modelSetSelection(NFA);
     }
 
     public void onClick_DFA(MouseEvent mouseEvent) {
-        model.setSelection(DFA);
-        updateTextArea();
-        updateLabels();
+        modelSetSelection(DFA);
     }
 
     public void onClick_MinDFA(MouseEvent mouseEvent) {
-        model.setSelection(MinDFA);
-        updateTextArea();
-        updateLabels();
+        modelSetSelection(MinDFA);
+    }
+
+    private void modelSetSelection(MainModel.GraphChoice choice) {
+        executor.execute(
+                () -> {
+                    model.setSelection(choice);
+                    Platform.runLater(
+                            () -> {
+                                updateTextArea();
+                                updateLabels();
+                            }
+                    );
+                }
+        );
     }
 
     private void toggleRegex() {
         if (regexEditing) {
-            model.setRegex(textField_regex.getText());
-            updateRegex();
-            updateImages();
-            updateTextArea();
+            executor.execute(
+                    () -> {
+                        model.setRegex(textField_regex.getText());
+                        Platform.runLater(
+                                () -> {
+                                    updateRegex();
+                                    updateImages();
+                                    updateTextArea();
+                                }
+                        );
+                    }
+            );
         } else {
             updateRegex();
         }
@@ -93,9 +113,17 @@ public class MainController extends Controller<MainModel> {
 
     private void toggleTestString() {
         if (testStringEditing) {
-            model.setTestString(textField_testString.getText());
+            executor.execute(
+                    () -> {
+                        model.setTestString(textField_testString.getText());
+                        Platform.runLater(
+                                () -> updateTestString()
+                        );
+                    }
+            );
+        } else {
+            updateTestString();
         }
-        updateTestString();
     }
 
     private void updateTextArea() {
@@ -108,9 +136,25 @@ public class MainController extends Controller<MainModel> {
 
     private void updateImages() {
         if (model.isRegexSuccess()) {
-            image_nfa.setImage(SwingFXUtils.toFXImage(model.getImage(NFA), null));
-            image_dfa.setImage(SwingFXUtils.toFXImage(model.getImage(DFA), null));
-            image_min_dfa.setImage(SwingFXUtils.toFXImage(model.getImage(MinDFA), null));
+            executor.execute(
+                    () -> {
+                        try {
+                            Image i_nfa = new Image(model.getImageStream(NFA));
+                            Image i_dfa = new Image(model.getImageStream(DFA));
+                            Image i_min_dfa = new Image(model.getImageStream(MinDFA));
+
+                            Platform.runLater(
+                                    () -> {
+                                        image_nfa.setImage(i_nfa);
+                                        image_dfa.setImage(i_dfa);
+                                        image_min_dfa.setImage(i_min_dfa);
+                                    }
+                            );
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+            );
         } else {
             image_nfa.setImage(null);
             image_dfa.setImage(null);
@@ -230,7 +274,7 @@ public class MainController extends Controller<MainModel> {
         }
         updateTextArea();
         updateImages();
-        Platform.runLater(() -> textFlow_testString.requestFocus());
+        textFlow_testString.requestFocus();
     }
 
     public void onKeyPressed_textFlowTestString(KeyEvent keyEvent) {
@@ -295,6 +339,9 @@ public class MainController extends Controller<MainModel> {
         updateLabels();
     }
 
+    public void shutdown() {
+        executor.shutdown();
+    }
 
 }
 

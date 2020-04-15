@@ -8,7 +8,7 @@ import RegexFA.Graph.SimpleNode;
 import RegexFA.Parser.ParserException;
 import RegexFA.Parser.RegexParser;
 
-import java.awt.image.BufferedImage;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Set;
 
@@ -44,7 +44,7 @@ public class MainModel extends Model {
         colorNodeList = new ArrayList<>();
     }
 
-    private void generateGraph() {
+    private synchronized void generateGraph() {
         try {
             regexSuccess = false;
             regexErrMsg = "";
@@ -57,7 +57,7 @@ public class MainModel extends Model {
         }
     }
 
-    private void validateTestString() {
+    private synchronized void validateTestString() {
         for (int i = 0; i < testString.length(); i++) {
             if (!alphabet.invertMap.containsKey(testString.charAt(i))) {
                 testStringSuccess = false;
@@ -69,7 +69,7 @@ public class MainModel extends Model {
         testStringErrorMsg = "";
     }
 
-    private void generateColorNodeList() {
+    private synchronized void generateColorNodeList() {
         if (regexSuccess && testStringSuccess) {
             colorNodeList.clear();
             SimpleNode curr = dfa.getRootNode();
@@ -91,11 +91,11 @@ public class MainModel extends Model {
         }
     }
 
-    public String getDotString() {
+    public synchronized String getDotString() {
         return getDotString(selection);
     }
 
-    public String getDotString(GraphChoice graphChoice) {
+    public synchronized String getDotString(GraphChoice graphChoice) {
         Set<Node> nodeSet = null;
         if (testStringPos + 1 < colorNodeList.size()) {
             nodeSet = colorNodeList.get(testStringPos + 1);
@@ -112,62 +112,62 @@ public class MainModel extends Model {
         }
     }
 
-    public BufferedImage getImage(GraphChoice graphChoice) {
-        return Graph.getImage(getDotString(graphChoice));
+    public synchronized InputStream getImageStream(GraphChoice graphChoice) {
+        return Graph.getImageStream(getDotString(graphChoice));
     }
 
-    public GraphChoice getSelection() {
+    public synchronized GraphChoice getSelection() {
         return selection;
     }
 
-    public void setSelection(GraphChoice selection) {
+    public synchronized void setSelection(GraphChoice selection) {
         this.selection = selection;
     }
 
-    public boolean isRegexSuccess() {
+    public synchronized boolean isRegexSuccess() {
         return regexSuccess;
     }
 
-    public void setAlphabet(Alphabet alphabet) {
+    public synchronized void setAlphabet(Alphabet alphabet) {
         this.alphabet = alphabet;
     }
 
-    public void setRegex(String regex) {
+    public synchronized void setRegex(String regex) {
         this.regex = regex;
         generateGraph();
     }
 
-    public void setTestString(String testString) {
+    public synchronized void setTestString(String testString) {
         this.testString = testString;
         validateTestString();
         generateColorNodeList();
     }
 
-    public String getRegex() {
+    public synchronized String getRegex() {
         return regex;
     }
 
-    public String getTestString() {
+    public synchronized String getTestString() {
         return testString;
     }
 
-    public String getRegexErrMsg() {
+    public synchronized String getRegexErrMsg() {
         return regexErrMsg;
     }
 
-    public boolean isTestStringSuccess() {
+    public synchronized boolean isTestStringSuccess() {
         return testStringSuccess;
     }
 
-    public String getTestStringErrorMsg() {
+    public synchronized String getTestStringErrorMsg() {
         return testStringErrorMsg;
     }
 
-    public void setTestStringPos(int testStringPos) {
+    public synchronized void setTestStringPos(int testStringPos) {
         this.testStringPos = testStringPos;
     }
 
-    public int getTestStringPos() {
+    public synchronized int getTestStringPos() {
         return testStringPos;
     }
 }

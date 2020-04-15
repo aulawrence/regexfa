@@ -40,11 +40,6 @@
             <artifactId>javafx-fxml</artifactId>
             <version>13</version>
         </dependency>
-        <dependency>
-            <groupId>org.openjfx</groupId>
-            <artifactId>javafx-swing</artifactId>
-            <version>13</version>
-        </dependency>
 
         <dependency>
             <groupId>guru.nidi</groupId>
