@@ -17,7 +17,9 @@ public class MainApp extends Application {
         MainController controller = loader.getController();
         primaryStage.setTitle("Main");
         primaryStage.setOnHidden(event -> controller.shutdown());
-        primaryStage.setScene(new Scene(root, 800, 600));
+        Scene scene = new Scene(root, 800, 600);
+        scene.getStylesheets().add(getClass().getResource("/application.css").toExternalForm());
+        primaryStage.setScene(scene);
         primaryStage.show();
     }
 
