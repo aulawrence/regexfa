@@ -6,7 +6,6 @@ import RegexFA.Graph.NFAGraph;
 import RegexFA.Graph.Node;
 
 import java.util.HashSet;
-import java.util.Set;
 import java.util.Stack;
 
 public class RegexParser {
@@ -175,10 +174,10 @@ public class RegexParser {
             NFAGraph g = toGraph(pattern, Alphabet.Binary);
             DFAGraph h = g.toDFA();
             DFAGraph i = h.minimize();
-            Set<Node> colorNode = h.getRootNode().getEdges()[Alphabet.Binary.invertMap.get('1')].getNodeSet();
-            System.out.println(g.toDotString(colorNode));
-            System.out.println(h.toDotString(colorNode));
-            System.out.println(i.toDotString(colorNode));
+            Node dfaNode = h.getRootNode().getEdges()[Alphabet.Binary.invertMap.get('1')];
+            System.out.println(g.toDotString_colorNFA(dfaNode));
+            System.out.println(h.toDotString_colorDFA(dfaNode));
+            System.out.println(i.toDotString_colorMinDFA(dfaNode));
         } catch (ParserException e) {
             e.printStackTrace();
         }

@@ -3,9 +3,9 @@ package RegexFA.Graph;
 import RegexFA.Alphabet;
 
 import java.util.*;
-import java.util.stream.Collectors;
+import java.util.function.Function;
 
-public class DFAGraph extends Graph<DFANode>{
+public class DFAGraph extends Graph<DFANode> {
     private DFANode rootNode;
 
     public DFAGraph(Alphabet alphabet) {
@@ -43,41 +43,46 @@ public class DFAGraph extends Graph<DFANode>{
     }
 
     public String toDotString() {
-        return toDotString(null);
+        return toDotString((node) -> false);
     }
 
-    public String toDotString(Set<Node> colorNodeSet) {
+    public String toDotString_colorDFA(Node dfaNode) {
+        return toDotString((node) -> dfaNode != null && node == dfaNode);
+    }
+
+    public String toDotString_colorMinDFA(Node dfaNode) {
+        return toDotString((node) -> dfaNode != null && node.getNodeSet().contains(dfaNode));
+    }
+
+    public String toDotString(Function<DFANode, Boolean> colorPredicate) {
         StringBuilder sb = new StringBuilder();
         sb.append("digraph {\n");
         sb.append("\n");
-        for (Node node : nodeList) {
-            sb.append(String.format("  %s [width=1, height=1", node.getId()));
-            if (node.getNodeSet() != null){
+        for (DFANode node : nodeList) {
+            sb.append(String.format("  %s [width=1 height=1", node.getId()));
+            if (node.getNodeSet() != null) {
                 String s = node.toRepr();
                 sb.append(" label=\"");
-                int k = (int) Math.sqrt(s.length())*2+1;
-                for (int i = 0; i < s.length(); i++){
-                    sb.append(s.charAt(i));
-                    if ((i+1) % k == 0){
+                int lineLen = (int) Math.sqrt(s.length()) * 2 + 3;
+                for (int i = 0; i < s.length(); i += lineLen) {
+                    if (i + lineLen < s.length()) {
+                        sb.append(s, i, i + lineLen);
                         sb.append("\\n");
+                    } else {
+                        sb.append(s, i, s.length());
                     }
                 }
                 sb.append("\"");
-
-                if (colorNodeSet != null &&  (node.getNodeSet() == colorNodeSet || node.getNodeSet().stream().anyMatch((x) -> x.getNodeSet() == colorNodeSet))) {
-                    sb.append(", color=red");
-                }
-            } else {
-                if (colorNodeSet != null && colorNodeSet.contains(node)) {
-                    sb.append(", color=red");
-                }
             }
-            if (node.isAccept()){
+            if (colorPredicate.apply(node)) {
+                sb.append(" color=red");
+            }
+            if (node.isAccept()) {
                 sb.append(" peripheries=2");
             }
             sb.append("];\n");
         }
-        sb.append("  0 [width=0, height=0, label=\"\"];\n");
+        sb.append("  0 [width=0 height=0 label=\"\"];\n");
         sb.append("\n");
         if (rootNode != null) {
             sb.append(String.format("  0->%s;\n", rootNode.getId()));
@@ -90,11 +95,11 @@ public class DFAGraph extends Graph<DFANode>{
         return sb.toString();
     }
 
-    public DFAGraph minimize(){
+    public DFAGraph minimize() {
         Map<Node, Integer> prevPartitions;
         Map<Node, Integer> currPartitions = new HashMap<>();
-        for (Node node: this.getNodeList()){
-            if (node.isAccept()){
+        for (Node node : nodeList) {
+            if (node.isAccept()) {
                 currPartitions.put(node, 0);
             } else {
                 currPartitions.put(node, 1);
@@ -102,80 +107,75 @@ public class DFAGraph extends Graph<DFANode>{
         }
         int prevN = -1;
         int currN = 2;
-        while (prevN != currN){
+        while (prevN != currN) {
             prevN = currN;
             prevPartitions = currPartitions;
             currPartitions = new HashMap<>(prevPartitions);
-            for (int p = 0; p < prevN; p ++){
+            for (int p = 0; p < prevN; p++) {
                 List<DFANode> partitionNodeList = new ArrayList<>();
-                for (DFANode node: this.getNodeList()) {
-                    if (prevPartitions.get(node) == p){
+                for (DFANode node : nodeList) {
+                    if (prevPartitions.get(node) == p) {
                         partitionNodeList.add(node);
                     }
                 }
                 boolean modified = false;
-                if (partitionNodeList.size() >= 2){
-                    for (int i = 0; i < partitionNodeList.size(); i++){
-                        DFANode a = partitionNodeList.get(i);
-                        if (currPartitions.get(a) == p) {
-                            for (int j = i + 1; j < partitionNodeList.size(); j++) {
-                                DFANode b = partitionNodeList.get(j);
-                                if (currPartitions.get(b) == p) {
-                                    for (int k = 0; k < this.getAlphabet().n; k++) {
-                                        if (a.getEdges()[k] != null || b.getEdges()[k] != null){
-                                            if (a.getEdges()[k] == null || b.getEdges()[k] == null || !prevPartitions.get(a.getEdges()[k]).equals(prevPartitions.get(b.getEdges()[k]))){
-                                                currPartitions.put(b, currN);
-                                                modified = true;
-                                                break;
-                                            }
-                                        }
-                                    }
-                                }
+                // Singleton
+                if (partitionNodeList.size() < 2) continue;
+                for (int i = 0; i < partitionNodeList.size(); i++) {
+                    DFANode a = partitionNodeList.get(i);
+                    // a has already been moved to the new partition
+                    if (currPartitions.get(a) != p) continue;
+                    for (int j = i + 1; j < partitionNodeList.size(); j++) {
+                        DFANode b = partitionNodeList.get(j);
+                        // b has already been moved to the new partition
+                        if (currPartitions.get(b) != p) continue;
+                        for (int k = 0; k < alphabet.n; k++) {
+                            int aPartNum = a.getEdges()[k] == null ? -1 : prevPartitions.get(a.getEdges()[k]);
+                            int bPartNum = b.getEdges()[k] == null ? -1 : prevPartitions.get(b.getEdges()[k]);
+                            if (aPartNum != bPartNum) {
+                                currPartitions.put(b, currN);
+                                modified = true;
+                                break;
                             }
                         }
                     }
                 }
-                if (modified){
-                    currN ++;
+                if (modified) {
+                    currN++;
                 }
             }
         }
 
-        DFAGraph graph = new DFAGraph(this.getAlphabet());
+        DFAGraph graph = new DFAGraph(alphabet);
         Map<Integer, DFANode> newNodes = new HashMap<>();
-        for (int p = 0; p < currN; p ++){
-            Set<Node> nodeSet = new HashSet<>(){
-                @Override
-                public String toString() {
-                    return "{" + this.stream().map(Node::getId).collect(Collectors.joining(", ")) + "}";
-                }
-            };
+        for (int p = 0; p < currN; p++) {
+            Set<Node> nodeSet = new HashSet<>();
             boolean isAccept = false;
             boolean isRoot = false;
-            for (Node node: this.getNodeList()) {
-                if (currPartitions.get(node) == p){
+            for (Node node : nodeList) {
+                if (currPartitions.get(node) == p) {
                     nodeSet.add(node);
-                    if (node.isAccept()){
+                    if (node.isAccept()) {
                         isAccept = true;
                     }
-                    if (node == this.getRootNode()){
+                    if (node == rootNode) {
                         isRoot = true;
                     }
                 }
             }
-            if (!nodeSet.isEmpty()){
+            if (!nodeSet.isEmpty()) {
                 DFANode newNode = graph.addNode(nodeSet);
-                if (isAccept){
+                if (isAccept) {
                     newNode.setAccept(true);
                 }
-                if (isRoot){
+                if (isRoot) {
                     graph.setRootNode(newNode);
                 }
                 newNodes.put(p, newNode);
             }
         }
 
-        for (Edge<DFANode> edge: this.getEdgeList()){
+        for (Edge<DFANode> edge : edgeList) {
             DFANode newFromNode = newNodes.get(currPartitions.get(edge.fromNode));
             DFANode newToNode = newNodes.get(currPartitions.get(edge.toNode));
             graph.addEdge(newFromNode, newToNode, edge.label);

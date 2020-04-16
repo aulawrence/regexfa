@@ -7,7 +7,6 @@ import RegexFA.Parser.RegexParser;
 
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
-import java.util.Set;
 
 public class MainModel extends Model {
     public enum GraphChoice {
@@ -24,13 +23,11 @@ public class MainModel extends Model {
     private boolean testStringSuccess;
     private String testStringErrorMsg;
     private int testStringPos;
-    private final ArrayList<Set<Node>> colorNodeList;
+    private final ArrayList<Node> testStringDFANodes;
     private GraphChoice selection;
-
     private NFAGraph nfa;
     private DFAGraph dfa;
     private DFAGraph min_dfa;
-
 
     public MainModel() {
         regexSuccess = false;
@@ -38,7 +35,7 @@ public class MainModel extends Model {
         regex = "";
         testString = "";
         testStringPos = -1;
-        colorNodeList = new ArrayList<>();
+        testStringDFANodes = new ArrayList<>();
     }
 
     private synchronized void generateGraph() {
@@ -68,21 +65,21 @@ public class MainModel extends Model {
 
     private synchronized void generateColorNodeList() {
         if (regexSuccess && testStringSuccess) {
-            colorNodeList.clear();
+            testStringDFANodes.clear();
             DFANode curr = dfa.getRootNode();
             int i = 0;
             if (curr != null) {
-                colorNodeList.add(curr.getNodeSet());
+                testStringDFANodes.add(curr);
             }
             while (curr != null && i < testString.length()) {
                 curr = dfa.moveFromNode(curr, testString.charAt(i));
                 if (curr != null) {
-                    colorNodeList.add(curr.getNodeSet());
+                    testStringDFANodes.add(curr);
                 }
                 i++;
             }
         } else {
-            colorNodeList.clear();
+            testStringDFANodes.clear();
         }
     }
 
@@ -91,17 +88,17 @@ public class MainModel extends Model {
     }
 
     public synchronized String getDotString(GraphChoice graphChoice) {
-        Set<Node> nodeSet = null;
-        if (testStringPos + 1 < colorNodeList.size()) {
-            nodeSet = colorNodeList.get(testStringPos + 1);
+        Node dfaNode = null;
+        if (testStringPos + 1 < testStringDFANodes.size()) {
+            dfaNode = testStringDFANodes.get(testStringPos + 1);
         }
         switch (graphChoice) {
             case DFA:
-                return dfa.toDotString(nodeSet);
+                return dfa.toDotString_colorDFA(dfaNode);
             case NFA:
-                return nfa.toDotString(nodeSet);
+                return nfa.toDotString_colorNFA(dfaNode);
             case MinDFA:
-                return min_dfa.toDotString(nodeSet);
+                return min_dfa.toDotString_colorMinDFA(dfaNode);
             default:
                 throw new IllegalStateException();
         }
@@ -127,23 +124,23 @@ public class MainModel extends Model {
         this.alphabet = alphabet;
     }
 
+    public synchronized String getRegex() {
+        return regex;
+    }
+
     public synchronized void setRegex(String regex) {
         this.regex = regex;
         generateGraph();
+    }
+
+    public synchronized String getTestString() {
+        return testString;
     }
 
     public synchronized void setTestString(String testString) {
         this.testString = testString;
         validateTestString();
         generateColorNodeList();
-    }
-
-    public synchronized String getRegex() {
-        return regex;
-    }
-
-    public synchronized String getTestString() {
-        return testString;
     }
 
     public synchronized String getRegexErrMsg() {
@@ -158,11 +155,11 @@ public class MainModel extends Model {
         return testStringErrorMsg;
     }
 
-    public synchronized void setTestStringPos(int testStringPos) {
-        this.testStringPos = testStringPos;
-    }
-
     public synchronized int getTestStringPos() {
         return testStringPos;
+    }
+
+    public synchronized void setTestStringPos(int testStringPos) {
+        this.testStringPos = testStringPos;
     }
 }

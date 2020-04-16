@@ -4,23 +4,23 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 public class Node {
-    private final Graph<? extends Node> graph;
+    private final Graph<?> graph;
     private final String id;
     private final Set<Node> nodeSet;
     private boolean accept;
 
-    public Node(Graph<? extends Node> graph, String id) {
+    public Node(Graph<?> graph, String id) {
         this(graph, id, null);
     }
 
-    public Node(Graph<? extends Node> graph, String id, Set<Node> nodeSet) {
+    public Node(Graph<?> graph, String id, Set<Node> nodeSet) {
         this.graph = graph;
         this.id = id;
         this.nodeSet = nodeSet;
         this.accept = false;
     }
 
-    public Graph<? extends Node> getGraph() {
+    public Graph<?> getGraph() {
         return graph;
     }
 

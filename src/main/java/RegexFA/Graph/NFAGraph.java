@@ -3,7 +3,7 @@ package RegexFA.Graph;
 import RegexFA.Alphabet;
 
 import java.util.*;
-import java.util.stream.Collectors;
+import java.util.function.Function;
 
 public class NFAGraph extends Graph<Node> {
     private Node rootNode;
@@ -29,41 +29,42 @@ public class NFAGraph extends Graph<Node> {
     }
 
     public String toDotString() {
-        return toDotString(null);
+        return toDotString((node) -> false);
     }
 
-    public String toDotString(Set<Node> colorNodeSet) {
+    public String toDotString_colorNFA(Node dfaNodes) {
+        return toDotString((node) -> dfaNodes != null && dfaNodes.getNodeSet() != null && dfaNodes.getNodeSet().contains(node));
+    }
+
+    public String toDotString(Function<Node, Boolean> colorPredicate) {
         StringBuilder sb = new StringBuilder();
         sb.append("digraph {\n");
         sb.append("\n");
         for (Node node : nodeList) {
-            sb.append(String.format("  %s [width=1, height=1", node.getId()));
-            if (node.getNodeSet() != null){
+            sb.append(String.format("  %s [width=1 height=1", node.getId()));
+            if (node.getNodeSet() != null) {
                 String s = node.toRepr();
                 sb.append(" label=\"");
-                int k = (int) Math.sqrt(s.length())*2+1;
-                for (int i = 0; i < s.length(); i++){
-                    sb.append(s.charAt(i));
-                    if ((i+1) % k == 0){
+                int lineLen = (int) Math.sqrt(s.length()) * 2 + 3;
+                for (int i = 0; i < s.length(); i += lineLen) {
+                    if (i + lineLen < s.length()) {
+                        sb.append(s, i, i + lineLen);
                         sb.append("\\n");
+                    } else {
+                        sb.append(s, i, s.length());
                     }
                 }
                 sb.append("\"");
-
-                if (colorNodeSet != null &&  (node.getNodeSet() == colorNodeSet || node.getNodeSet().stream().anyMatch((x) -> x.getNodeSet() == colorNodeSet))) {
-                    sb.append(", color=red");
-                }
-            } else {
-                if (colorNodeSet != null && colorNodeSet.contains(node)) {
-                    sb.append(", color=red");
-                }
             }
-            if (node.isAccept()){
+            if (colorPredicate.apply(node)) {
+                sb.append(" color=red");
+            }
+            if (node.isAccept()) {
                 sb.append(" peripheries=2");
             }
             sb.append("];\n");
         }
-        sb.append("  0 [width=0, height=0, label=\"\"];\n");
+        sb.append("  0 [width=0 height=0 label=\"\"];\n");
         sb.append("\n");
         if (rootNode != null) {
             sb.append(String.format("  0->%s;\n", rootNode.getId()));
@@ -76,15 +77,42 @@ public class NFAGraph extends Graph<Node> {
         return sb.toString();
     }
 
-    public DFAGraph toDFA(){
-        Alphabet alphabet = this.getAlphabet();
+    private static Set<Node> getNodesReachableByEmpty(Map<Node, Map<Character, List<Node>>> edgesMap, Node node) {
+        Set<Node> currSet = new HashSet<>();
+        Queue<Node> nodeQueue = new ArrayDeque<>();
+        nodeQueue.add(node);
+        while (!nodeQueue.isEmpty()) {
+            Node currNode = nodeQueue.poll();
+            if (!currSet.contains(currNode)) {
+                currSet.add(currNode);
+                nodeQueue.addAll(edgesMap.get(currNode).getOrDefault(Alphabet.Empty, List.of()));
+            }
+        }
+        return currSet;
+    }
+
+    private static Set<Node> getNodesReachableByEmpty(Map<Node, Map<Character, List<Node>>> edgesMap, Set<Node> nodeSet) {
+        Set<Node> currSet = new HashSet<>();
+        Queue<Node> nodeQueue = new ArrayDeque<>(nodeSet);
+        while (!nodeQueue.isEmpty()) {
+            Node currNode = nodeQueue.poll();
+            if (!currSet.contains(currNode)) {
+                currSet.add(currNode);
+                nodeQueue.addAll(edgesMap.get(currNode).getOrDefault(Alphabet.Empty, List.of()));
+            }
+        }
+        return currSet;
+    }
+
+    public DFAGraph toDFA() {
         DFAGraph dfa = new DFAGraph(alphabet);
         Map<Node, Map<Character, List<Node>>> listMap = new HashMap<>();
-        for (Node node: this.getNodeList()){
+        for (Node node : nodeList) {
             listMap.put(node, new HashMap<>());
         }
-        for (Edge<Node> edge: this.getEdgeList()){
-            if (listMap.get(edge.fromNode).containsKey(edge.label)){
+
+        for (Edge<Node> edge : edgeList) {
+            if (listMap.get(edge.fromNode).containsKey(edge.label)) {
                 listMap.get(edge.fromNode).get(edge.label).add(edge.toNode);
             } else {
                 List<Node> nodeList = new ArrayList<>();
@@ -92,70 +120,44 @@ public class NFAGraph extends Graph<Node> {
                 listMap.get(edge.fromNode).put(edge.label, nodeList);
             }
         }
+
         Map<Set<Node>, DFANode> nodeMap = new HashMap<>();
         Queue<Set<Node>> setQueue = new ArrayDeque<>();
-        Set<Node> currSet = new HashSet<>(){
-            @Override
-            public String toString() {
-                return "{" + this.stream().map(Node::getId).collect(Collectors.joining(", ")) + "}";
-            }
-        };
-        Queue<Node> nodeQueue = new ArrayDeque<>();
 
-        nodeQueue.add(this.getRootNode());
-        while (!nodeQueue.isEmpty()){
-            Node currNode = nodeQueue.poll();
-            if (!currSet.contains(currNode)){
-                currSet.add(currNode);
-                nodeQueue.addAll(listMap.get(currNode).getOrDefault(Alphabet.Empty, List.of()));
-            }
-        }
-        DFANode rootNode = dfa.addNode(currSet);
-        for (Node node: currSet){
-            if (node.isAccept()){
-                rootNode.setAccept(true);
-            }
-        }
-        nodeMap.put(currSet, rootNode);
-        dfa.setRootNode(rootNode);
+        Set<Node> rootPowerSet = getNodesReachableByEmpty(listMap, rootNode);
 
-        setQueue.add(currSet);
-        while (!setQueue.isEmpty()){
+        DFANode rootPowerNode = dfa.addNode(rootPowerSet);
+        if (rootPowerSet.stream().anyMatch(Node::isAccept)) {
+            rootPowerNode.setAccept(true);
+        }
+        nodeMap.put(rootPowerSet, rootPowerNode);
+        dfa.setRootNode(rootPowerNode);
+
+        setQueue.add(rootPowerSet);
+        while (!setQueue.isEmpty()) {
             Set<Node> prevSet = setQueue.poll();
             Set<Character> charSet = new HashSet<>();
-            for (Node node: prevSet){
+            for (Node node : prevSet) {
                 charSet.addAll(listMap.get(node).keySet());
             }
-            for (Character ch: charSet){
+            for (Character ch : charSet) {
                 if (ch != Alphabet.Empty) {
-                    currSet = new HashSet<>(){
-                        @Override
-                        public String toString() {
-                            return "{" + this.stream().map(Node::getId).collect(Collectors.joining(", ")) + "}";
-                        }
-                    };
+                    Set<Node> currNodeSet = new HashSet<>();
                     for (Node node : prevSet) {
-                        nodeQueue.addAll(listMap.get(node).getOrDefault(ch, List.of()));
+                        currNodeSet.addAll(listMap.get(node).getOrDefault(ch, List.of()));
                     }
-                    while (!nodeQueue.isEmpty()) {
-                        Node currNode = nodeQueue.poll();
-                        if (!currSet.contains(currNode)) {
-                            currSet.add(currNode);
-                            nodeQueue.addAll(listMap.get(currNode).getOrDefault(Alphabet.Empty, List.of()));
+                    Set<Node> currPowerSet = getNodesReachableByEmpty(listMap, currNodeSet);
+
+                    if (!nodeMap.containsKey(currPowerSet)) {
+                        DFANode currPowerNode = dfa.addNode(currPowerSet);
+                        if (currPowerSet.stream().anyMatch(Node::isAccept)) {
+                            currPowerNode.setAccept(true);
                         }
-                    }
-                    if (!nodeMap.containsKey(currSet)) {
-                        DFANode powerNode = dfa.addNode(currSet);
-                        for (Node node: currSet){
-                            if (node.isAccept()){
-                                powerNode.setAccept(true);
-                            }
-                        }
-                        nodeMap.put(currSet, powerNode);
-                        dfa.addEdge(nodeMap.get(prevSet), powerNode, ch);
-                        setQueue.add(currSet);
+                        nodeMap.put(currPowerSet, currPowerNode);
+                        dfa.addEdge(nodeMap.get(prevSet), currPowerNode, ch);
+                        setQueue.add(currPowerSet);
                     } else {
-                        dfa.addEdge(nodeMap.get(prevSet), nodeMap.get(currSet), ch);
+                        dfa.addEdge(nodeMap.get(prevSet), nodeMap.get(currPowerSet), ch);
                     }
                 }
             }
