@@ -8,6 +8,7 @@ import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.image.ImageView;
 import javafx.scene.image.WritableImage;
+import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.text.Text;
@@ -70,17 +71,101 @@ public class MainController extends Controller<MainModel> {
         toggleTestString();
     }
 
-    public void onClick_NFA(MouseEvent mouseEvent) {
+    @FXML
+    private void onKeyReleased_buttonRegex(KeyEvent keyEvent) {
+        switch (keyEvent.getCode()) {
+            case SPACE:
+            case ENTER:
+                toggleRegex();
+                break;
+        }
+    }
+
+    @FXML
+    private void onKeyReleased_buttonTestString(KeyEvent keyEvent) {
+        switch (keyEvent.getCode()) {
+            case SPACE:
+            case ENTER:
+                toggleTestString();
+                break;
+        }
+    }
+
+    @FXML
+    private void onKeyReleased_textFieldRegex(KeyEvent keyEvent) {
+        if (keyEvent.getCode() == KeyCode.ENTER) {
+            toggleRegex();
+        }
+    }
+
+    @FXML
+    private void onKeyReleased_textFieldTestString(KeyEvent keyEvent) {
+        if (keyEvent.getCode() == KeyCode.ENTER) {
+            toggleTestString();
+        }
+    }
+
+    @FXML
+    private void onClick_NFA(MouseEvent mouseEvent) {
         modelSetSelection(NFA);
     }
 
-    public void onClick_DFA(MouseEvent mouseEvent) {
+    @FXML
+    private void onClick_DFA(MouseEvent mouseEvent) {
         modelSetSelection(DFA);
     }
 
-    public void onClick_MinDFA(MouseEvent mouseEvent) {
+    @FXML
+    private void onClick_MinDFA(MouseEvent mouseEvent) {
         modelSetSelection(MinDFA);
     }
+
+    @FXML
+    private void onKeyPressed_textFlowTestString(KeyEvent keyEvent) {
+        if (model.isRegexSuccess() && model.isTestStringSuccess()) {
+            switch (keyEvent.getCode()) {
+                case HOME:
+                case END:
+                case UP:
+                case DOWN:
+                case LEFT:
+                case RIGHT:
+                    keyEvent.consume();
+                    break;
+            }
+        }
+    }
+
+    @FXML
+    private void onKeyReleased_textFlowTestString(KeyEvent keyEvent) {
+        if (model.isRegexSuccess() && model.isTestStringSuccess()) {
+            int curr = model.getTestStringPos();
+            int target = curr;
+            int lim = model.getTestString().length() - 1;
+            switch (keyEvent.getCode()) {
+                case UP:
+                case HOME:
+                    target = -1;
+                    break;
+                case DOWN:
+                case END:
+                    target = lim;
+                    break;
+                case LEFT:
+                    target = curr - 1;
+                    break;
+                case RIGHT:
+                    target = curr + 1;
+                    break;
+            }
+            target = Integer.max(-1, Integer.min(target, lim));
+            if (target != curr) {
+                model.setTestStringPos(target);
+                updatePos();
+            }
+        }
+    }
+
 
     private void modelSetSelection(MainModel.GraphChoice choice) {
         executor.execute(
@@ -279,46 +364,6 @@ public class MainController extends Controller<MainModel> {
         textFlow_testString.requestFocus();
     }
 
-    public void onKeyPressed_textFlowTestString(KeyEvent keyEvent) {
-        if (model.isRegexSuccess() && model.isTestStringSuccess()) {
-            switch (keyEvent.getCode()) {
-                case UP:
-                case DOWN:
-                case LEFT:
-                case RIGHT:
-                    keyEvent.consume();
-                    break;
-            }
-        }
-    }
-
-    public void onKeyReleased_textFlowTestString(KeyEvent keyEvent) {
-        if (model.isRegexSuccess() && model.isTestStringSuccess()) {
-            int curr = model.getTestStringPos();
-            int target = curr;
-            int lim = model.getTestString().length() - 1;
-            switch (keyEvent.getCode()) {
-                case UP:
-                    target = -1;
-                    break;
-                case DOWN:
-                    target = lim;
-                    break;
-                case LEFT:
-                    target = curr - 1;
-                    break;
-                case RIGHT:
-                    target = curr + 1;
-                    break;
-            }
-            target = Integer.max(-1, Integer.min(target, lim));
-            if (target != curr) {
-                model.setTestStringPos(target);
-                updatePos();
-            }
-        }
-    }
-
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         choiceBox_alphabet.getItems().setAll(Alphabet.values());
@@ -344,6 +389,5 @@ public class MainController extends Controller<MainModel> {
     public void shutdown() {
         executor.shutdown();
     }
-
 }
 

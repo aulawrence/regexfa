@@ -17,18 +17,18 @@
          <children>
               <Label text="Regular Expression:" AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="5.0" />
               <Text fx:id="text_regex" text="regex" AnchorPane.leftAnchor="150.0" AnchorPane.rightAnchor="60.0" AnchorPane.topAnchor="5.0" />
-              <TextField fx:id="textField_regex" maxHeight="-Infinity" minHeight="-Infinity" prefHeight="26.0" prefWidth="559.0" AnchorPane.leftAnchor="150.0" AnchorPane.rightAnchor="60.0" AnchorPane.topAnchor="0.0" />
+              <TextField fx:id="textField_regex" onKeyReleased="#onKeyReleased_textFieldRegex" maxHeight="-Infinity" minHeight="-Infinity" prefHeight="26.0" prefWidth="559.0" AnchorPane.leftAnchor="150.0" AnchorPane.rightAnchor="60.0" AnchorPane.topAnchor="0.0" />
               <Text fx:id="text_errRegex" text="regexErr" AnchorPane.leftAnchor="150.0" AnchorPane.rightAnchor="60.0" AnchorPane.topAnchor="27.0" />
-              <Button fx:id="button_regex" mnemonicParsing="false" onMouseClicked="#onClick_buttonRegex" text="Ok" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+              <Button fx:id="button_regex" mnemonicParsing="false" onMouseClicked="#onClick_buttonRegex" onKeyReleased="#onKeyReleased_buttonRegex" text="Ok" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
          </children>
       </AnchorPane>
       <AnchorPane layoutX="12.0" layoutY="101.0" AnchorPane.leftAnchor="12.0" AnchorPane.rightAnchor="12.0" AnchorPane.topAnchor="108.0">
          <children>
               <Label text="Test String:" AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="5.0" />
-              <TextField fx:id="textField_testString" disable="true" maxHeight="-Infinity" minHeight="-Infinity" prefHeight="26.0" prefWidth="559.0" AnchorPane.leftAnchor="150.0" AnchorPane.rightAnchor="60.0" AnchorPane.topAnchor="0.0" />
+              <TextField fx:id="textField_testString" onKeyReleased="#onKeyReleased_textFieldTestString" disable="true" maxHeight="-Infinity" minHeight="-Infinity" prefHeight="26.0" prefWidth="559.0" AnchorPane.leftAnchor="150.0" AnchorPane.rightAnchor="60.0" AnchorPane.topAnchor="0.0" />
               <TextFlow fx:id="textFlow_testString" focusTraversable="true" onKeyPressed="#onKeyPressed_textFlowTestString" onKeyReleased="#onKeyReleased_textFlowTestString" prefHeight="26.0" AnchorPane.leftAnchor="150.0" AnchorPane.rightAnchor="60.0" AnchorPane.topAnchor="5.0" />
               <Text fx:id="text_errTestString" text="testStringErr" AnchorPane.leftAnchor="150.0" AnchorPane.rightAnchor="60.0" AnchorPane.topAnchor="27.0" />
-              <Button fx:id="button_testString" mnemonicParsing="false" onMouseClicked="#onClick_buttonTestString" text="Ok" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+              <Button fx:id="button_testString" mnemonicParsing="false" onMouseClicked="#onClick_buttonTestString" onKeyReleased="#onKeyReleased_buttonTestString" text="Ok" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
          </children>
       </AnchorPane>
       <AnchorPane layoutX="12.0" layoutY="150.0" AnchorPane.leftAnchor="12.0" AnchorPane.rightAnchor="12.0" AnchorPane.topAnchor="150.0">
