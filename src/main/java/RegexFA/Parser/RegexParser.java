@@ -21,6 +21,7 @@ public class RegexParser {
         s.add('*');
         s.add('?');
         s.add('|');
+        s.add('.');
         int bracketCount = 0;
         boolean prevAtom = false;
         char[] chArray = string.toCharArray();
@@ -51,6 +52,9 @@ public class RegexParser {
                     break;
                 case '|':
                     prevAtom = false;
+                    break;
+                case '.':
+                    prevAtom = true;
                     break;
                 default:
                     prevAtom = true;
@@ -137,6 +141,21 @@ public class RegexParser {
                     graph.addEdge(prev, curr, Alphabet.Empty);
                     prev = curr;
                     break;
+                case '.':
+                    curr = graph.addNode();
+                    for (char ch : alphabet.alphabetList) {
+                        if (ch != Alphabet.Empty) {
+                            graph.addEdge(prev, curr, ch);
+                        }
+                    }
+                    if (addModifier(graph, curr, prev, chNext)) {
+                        prev = curr;
+                        curr = graph.addNode();
+                        graph.addEdge(prev, curr, Alphabet.Empty);
+                        i++;
+                    }
+                    prev = curr;
+                    break;
                 default:
                     curr = graph.addNode();
                     graph.addEdge(prev, curr, chCurr);
@@ -144,7 +163,6 @@ public class RegexParser {
                         prev = curr;
                         curr = graph.addNode();
                         graph.addEdge(prev, curr, Alphabet.Empty);
-                        prev = curr;
                         i++;
                     }
                     prev = curr;
@@ -168,7 +186,8 @@ public class RegexParser {
     }
 
     public static void main(String[] args) {
-        String pattern = "(0|1(01*0)*1)*";
+//        String pattern = "(0|1(01*0)*1)*";
+        String pattern = "01.*";
         try {
             verify(pattern, Alphabet.Binary);
             NFAGraph g = toGraph(pattern, Alphabet.Binary);
