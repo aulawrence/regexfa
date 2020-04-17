@@ -3,18 +3,19 @@ package RegexFA.Controller;
 import RegexFA.Alphabet;
 import RegexFA.Model.MainModel;
 import javafx.application.Platform;
-import javafx.embed.swing.SwingFXUtils;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
+import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.image.WritableImage;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextFlow;
 
+import java.io.IOException;
 import java.net.URL;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.ResourceBundle;
 import java.util.concurrent.ExecutorService;
@@ -44,14 +45,14 @@ public class MainController extends Controller<MainModel> {
     private final ArrayList<Text> testStringArrayList;
     private final ExecutorService executor;
 
-    private WritableImage imageBuffer_nfa;
-    private WritableImage imageBuffer_dfa;
-    private WritableImage imageBuffer_min_dfa;
+    private Path imagePath_nfa;
+    private Path imagePath_dfa;
+    private Path imagePath_min_dfa;
 
     private boolean regexEditing = true;
     private boolean testStringEditing = true;
 
-    public MainController() {
+    public MainController() throws IOException {
         this(new MainModel());
     }
 
@@ -227,23 +228,25 @@ public class MainController extends Controller<MainModel> {
         if (model.isRegexSuccess()) {
             executor.execute(
                     () -> {
-                        try {
-                            imageBuffer_nfa = SwingFXUtils.toFXImage(model.getImage(NFA), imageBuffer_nfa);
-                            imageBuffer_dfa = SwingFXUtils.toFXImage(model.getImage(DFA), imageBuffer_dfa);
-                            imageBuffer_min_dfa = SwingFXUtils.toFXImage(model.getImage(MinDFA), imageBuffer_min_dfa);
-                            Platform.runLater(
-                                    () -> {
-                                        image_nfa.setImage(imageBuffer_nfa);
-                                        image_dfa.setImage(imageBuffer_dfa);
-                                        image_min_dfa.setImage(imageBuffer_min_dfa);
+                        imagePath_nfa = model.getImage(NFA, "nfa");
+                        imagePath_dfa = model.getImage(DFA, "dfa");
+                        imagePath_min_dfa = model.getImage(MinDFA, "min_dfa");
+                        Platform.runLater(
+                                () -> {
+                                    if (imagePath_nfa != null) {
+                                        image_nfa.setImage(new Image(imagePath_nfa.toUri().toString()));
                                         image_nfa.setVisible(true);
+                                    }
+                                    if (imagePath_dfa != null) {
+                                        image_dfa.setImage(new Image(imagePath_dfa.toUri().toString()));
                                         image_dfa.setVisible(true);
+                                    }
+                                    if (imagePath_nfa != null) {
+                                        image_min_dfa.setImage(new Image(imagePath_min_dfa.toUri().toString()));
                                         image_min_dfa.setVisible(true);
                                     }
-                            );
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
+                                }
+                        );
                     }
             );
         } else {
@@ -388,6 +391,7 @@ public class MainController extends Controller<MainModel> {
 
     public void shutdown() {
         executor.shutdown();
+        model.close();
     }
 }
 

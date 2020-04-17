@@ -1,14 +1,9 @@
 package RegexFA.Graph;
 
 import RegexFA.Alphabet;
-import guru.nidi.graphviz.engine.Engine;
-import guru.nidi.graphviz.engine.Format;
-import guru.nidi.graphviz.engine.Graphviz;
-import guru.nidi.graphviz.model.MutableGraph;
-import guru.nidi.graphviz.parse.Parser;
 
-import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -90,11 +85,10 @@ public abstract class Graph<N extends Node> {
         return sb.toString();
     }
 
-    public static BufferedImage getImage(String dotString) {
+    public static Path getImage(GraphViz graphViz, String dotString, String imgName) {
         try {
-            MutableGraph g = new Parser().read(dotString);
-            return Graphviz.fromGraph(g).engine(Engine.DOT).render(Format.PNG).toImage();
-        } catch (IOException e) {
+            return graphViz.toImage(dotString, imgName);
+        } catch (IOException | InterruptedException e) {
             e.printStackTrace();
         }
         return null;

@@ -6,8 +6,6 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
-import org.apache.log4j.BasicConfigurator;
-
 
 public class MainApp extends Application {
     @Override
@@ -24,7 +22,6 @@ public class MainApp extends Application {
     }
 
     public static void main(String[] args) {
-        BasicConfigurator.configure();
         Application.launch(args);
     }
 }

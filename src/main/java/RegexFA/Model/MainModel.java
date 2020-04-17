@@ -5,15 +5,19 @@ import RegexFA.Graph.*;
 import RegexFA.Parser.ParserException;
 import RegexFA.Parser.RegexParser;
 
-import java.awt.image.BufferedImage;
+import java.io.Closeable;
+import java.io.IOException;
+import java.nio.file.Path;
 import java.util.ArrayList;
 
-public class MainModel extends Model {
+public class MainModel extends Model implements Closeable {
     public enum GraphChoice {
         NFA,
         DFA,
         MinDFA
     }
+
+    private final GraphViz graphViz;
 
     private Alphabet alphabet;
     private String regex;
@@ -29,13 +33,14 @@ public class MainModel extends Model {
     private DFAGraph dfa;
     private DFAGraph min_dfa;
 
-    public MainModel() {
+    public MainModel() throws IOException {
         regexSuccess = false;
         selection = GraphChoice.NFA;
         regex = "";
         testString = "";
         testStringPos = -1;
         testStringDFANodes = new ArrayList<>();
+        graphViz = new GraphViz();
     }
 
     private synchronized void generateGraph() {
@@ -104,8 +109,8 @@ public class MainModel extends Model {
         }
     }
 
-    public synchronized BufferedImage getImage(GraphChoice graphChoice) {
-        return Graph.getImage(getDotString(graphChoice));
+    public synchronized Path getImage(GraphChoice graphChoice, String imgName) {
+        return Graph.getImage(graphViz, getDotString(graphChoice), imgName);
     }
 
     public synchronized GraphChoice getSelection() {
@@ -161,5 +166,10 @@ public class MainModel extends Model {
 
     public synchronized void setTestStringPos(int testStringPos) {
         this.testStringPos = testStringPos;
+    }
+
+    @Override
+    public void close() {
+        graphViz.close();
     }
 }
