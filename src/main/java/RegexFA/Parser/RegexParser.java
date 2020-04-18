@@ -1,10 +1,10 @@
 package RegexFA.Parser;
 
 import RegexFA.Alphabet;
-import RegexFA.Graph.DFAGraph;
-import RegexFA.Graph.NFAGraph;
-import RegexFA.Graph.Node;
+import RegexFA.Graph.*;
 
+import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.HashSet;
 import java.util.Stack;
 
@@ -22,48 +22,255 @@ public class RegexParser {
         s.add('?');
         s.add('|');
         s.add('.');
+        s.add('{');
+        s.add('}');
+        s.add(',');
+        for (char ch = '0'; ch <= '9'; ch++) {
+            s.add(ch);
+        }
         int bracketCount = 0;
         boolean prevAtom = false;
+        boolean inQuantifier = false;
+        String minQuantifier = null;
+        String maxQuantifier = null;
         char[] chArray = string.toCharArray();
         for (int i = 0; i < chArray.length; i++) {
             char ch = chArray[i];
             if (!s.contains(ch)) {
                 throw new ParserException(String.format("'%s' at position %d is not a valid character.", ch, i));
             }
-            switch (ch) {
-                case '(':
-                    bracketCount++;
-                    prevAtom = false;
-                    break;
-                case ')':
-                    bracketCount--;
-                    if (bracketCount < 0) {
-                        throw new ParserException(String.format("')' at position %d is not valid. Cannot match opening bracket.", i));
-                    }
-                    prevAtom = true;
-                    break;
-                case '+':
-                case '*':
-                case '?':
-                    if (!prevAtom) {
-                        throw new ParserException(String.format("'%s' at position %d is not valid. The preceding character must be in the alphabet or a closing bracket.", ch, i));
-                    }
-                    prevAtom = false;
-                    break;
-                case '|':
-                    prevAtom = false;
-                    break;
-                case '.':
-                    prevAtom = true;
-                    break;
-                default:
-                    prevAtom = true;
-                    break;
+            if (!inQuantifier) {
+                switch (ch) {
+                    case '(':
+                        bracketCount++;
+                        prevAtom = false;
+                        break;
+                    case ')':
+                        bracketCount--;
+                        if (bracketCount < 0) {
+                            throw new ParserException(String.format("')' at position %d is not valid. Cannot match opening bracket.", i));
+                        }
+                        prevAtom = true;
+                        break;
+                    case '+':
+                    case '*':
+                    case '?':
+                        if (!prevAtom) {
+                            throw new ParserException(String.format("'%s' at position %d is not valid. The preceding character must be in the alphabet or a closing bracket.", ch, i));
+                        }
+                        prevAtom = false;
+                        break;
+                    case '|':
+                        prevAtom = false;
+                        break;
+                    case '.':
+                        prevAtom = true;
+                        break;
+                    case '{':
+                        if (!prevAtom) {
+                            throw new ParserException(String.format("'%s' at position %d is not valid. The preceding character must be in the alphabet or a closing bracket.", ch, i));
+                        }
+                        inQuantifier = true;
+                        minQuantifier = "";
+                        maxQuantifier = null;
+                        prevAtom = false;
+                        break;
+                    default:
+                        if (!alphabet.alphabetSet.contains(ch)) {
+                            throw new ParserException(String.format("'%s' at position %d is not valid. This character is not in the alphabet.", ch, i));
+                        }
+                        prevAtom = true;
+                        break;
+                }
+            } else {
+                switch (ch) {
+                    case '}':
+                        if (minQuantifier.equals("")) {
+                            throw new ParserException(String.format("'%s' at position %d is not valid. A minimum value must be set.", ch, i));
+                        }
+                        if (maxQuantifier != null && !maxQuantifier.equals("") && Integer.parseInt(minQuantifier) > Integer.parseInt(maxQuantifier)) {
+                            throw new ParserException(String.format("'%s' at position %d is not valid. The minimum value cannot be greater than the maximum value.", ch, i));
+                        }
+
+                        inQuantifier = false;
+                        minQuantifier = null;
+                        maxQuantifier = null;
+                        break;
+                    case ',':
+                        if (minQuantifier.equals("")) {
+                            throw new ParserException(String.format("'%s' at position %d is not valid. A minimum value must be set.", ch, i));
+                        }
+                        if (maxQuantifier != null) {
+                            throw new ParserException(String.format("'%s' at position %d is not valid. Only one comma is allowed inside curly brackets.", ch, i));
+                        }
+                        maxQuantifier = "";
+                        break;
+                    case '0':
+                    case '1':
+                    case '2':
+                    case '3':
+                    case '4':
+                    case '5':
+                    case '6':
+                    case '7':
+                    case '8':
+                    case '9':
+                        if (maxQuantifier == null) {
+                            minQuantifier += ch;
+                        } else {
+                            maxQuantifier += ch;
+                        }
+                        break;
+                    default:
+                        throw new ParserException(String.format("'%s' at position %d is not valid. This character is not allowed inside curly brackets.", ch, i));
+                }
             }
         }
         if (bracketCount != 0) {
             throw new ParserException(String.format("Unmatched brackets: Missing %d closing brackets.", bracketCount));
         }
+        if (inQuantifier) {
+            throw new ParserException("Missing closing curly braces.");
+        }
+    }
+
+    private static String preprocessQuantifier(String string, Alphabet alphabet) throws ParserException {
+        verify(string, alphabet);
+        StringBuilder sb = new StringBuilder();
+        Stack<StringBuilder> atomStack = new Stack<>();
+        String currAtom = "";
+        boolean inQuantifier = false;
+        String minQuantifier = null;
+        String maxQuantifier = null;
+        char[] chArray = string.toCharArray();
+        for (char ch : chArray) {
+            StringBuilder target = sb;
+            if (!atomStack.empty()) {
+                target = atomStack.peek();
+            }
+            if (!inQuantifier) {
+                switch (ch) {
+                    case '(':
+                        target.append(currAtom);
+                        atomStack.push(new StringBuilder());
+                        currAtom = "(";
+                        break;
+                    case ')':
+                        target.append(currAtom);
+                        currAtom = atomStack.pop().append(")").toString();
+                        break;
+                    case '{':
+                        inQuantifier = true;
+                        minQuantifier = "";
+                        maxQuantifier = null;
+                        break;
+                    case '*':
+                    case '?':
+                    case '+':
+                        target.append(currAtom);
+                        target.append(ch);
+                        currAtom = "";
+                        break;
+                    default:
+                        target.append(currAtom);
+                        currAtom = Character.toString(ch);
+                }
+            } else {
+                switch (ch) {
+                    case '}':
+                        if (minQuantifier.equals("")) {
+                            throw new IllegalStateException();
+                        }
+                        if (maxQuantifier != null && !maxQuantifier.equals("") && Integer.parseInt(minQuantifier) > Integer.parseInt(maxQuantifier)) {
+                            throw new IllegalStateException();
+                        }
+
+                        Integer min = Integer.parseInt(minQuantifier);
+                        Integer max;
+                        if (maxQuantifier == null) {
+                            max = min;
+                        } else if (maxQuantifier.equals("")) {
+                            max = null;
+                        } else {
+                            max = Integer.parseInt(maxQuantifier);
+                        }
+
+                        System.out.printf("Min: %s, Max: %s.%n", min.toString(), max == null ? "Inf" : max.toString());
+
+                        if (min == 0) {
+                            if (max == null) {
+                                target.append(currAtom);
+                                target.append("*");
+                            } else if (max == 0) {
+                                // Empty
+                            } else if (max == 1) {
+                                target.append(currAtom);
+                                target.append("?");
+                            } else {
+                                target.append("(");
+                                target.append(currAtom);
+                                target.append("?");
+                                for (int m = 2; m <= max; m++) {
+                                    target.append("|");
+                                    target.append(currAtom.repeat(m));
+                                }
+                                target.append(")");
+                            }
+                        } else {
+                            target.append(currAtom.repeat(min - 1));
+                            if (max == null) {
+                                target.append(currAtom);
+                                target.append("+");
+                            } else if (max.equals(min)) {
+                                target.append(currAtom);
+                            } else {
+                                target.append("(");
+                                target.append(currAtom);
+                                for (int m = min + 1; m <= max; m++) {
+                                    target.append("|");
+                                    target.append(currAtom.repeat(m - min + 1));
+                                }
+                                target.append(")");
+                            }
+                        }
+
+                        currAtom = "";
+
+                        inQuantifier = false;
+                        minQuantifier = null;
+                        maxQuantifier = null;
+                        break;
+                    case ',':
+                        if (minQuantifier.equals("")) {
+                            throw new IllegalStateException();
+                        }
+                        if (maxQuantifier != null) {
+                            throw new IllegalStateException();
+                        }
+                        maxQuantifier = "";
+                        break;
+                    case '0':
+                    case '1':
+                    case '2':
+                    case '3':
+                    case '4':
+                    case '5':
+                    case '6':
+                    case '7':
+                    case '8':
+                    case '9':
+                        if (maxQuantifier == null) {
+                            minQuantifier += ch;
+                        } else {
+                            maxQuantifier += ch;
+                        }
+                        break;
+                    default:
+                        throw new IllegalStateException();
+                }
+            }
+        }
+        return sb.toString();
     }
 
     private static boolean addModifier(NFAGraph graph, Node prev, Node atomBegin, Character ch) {
@@ -89,6 +296,7 @@ public class RegexParser {
 
     public static NFAGraph toGraph(String string, Alphabet alphabet) throws ParserException {
         verify(string, alphabet);
+        String prep = preprocessQuantifier(string, alphabet);
         NFAGraph graph = new NFAGraph(alphabet);
         Stack<Node> groupStack = new Stack<>();
         Stack<Node> orStack = new Stack<>();
@@ -100,9 +308,9 @@ public class RegexParser {
         Node curr = startNode2;
         Node prev = startNode2;
         int i = 0;
-        while (i < string.length()) {
-            char chCurr = string.charAt(i);
-            Character chNext = i == string.length() - 1 ? null : string.charAt(i + 1);
+        while (i < prep.length()) {
+            char chCurr = prep.charAt(i);
+            Character chNext = i == prep.length() - 1 ? null : prep.charAt(i + 1);
             switch (chCurr) {
                 case '(':
                     curr = graph.addNode();
@@ -187,17 +395,44 @@ public class RegexParser {
 
     public static void main(String[] args) {
 //        String pattern = "(0|1(01*0)*1)*";
-        String pattern = "01.*";
+//        String pattern = "1{5,7}(0{0,2}){2}1{1,}(01){2}(10){2,2}";
+        String pattern = "(0|1(01*0)*1){2,5}";
+//        String pattern = "(0|1){5}";
+//        Alphabet alphabet = Alphabet.Decimal;
+        Alphabet alphabet = Alphabet.Binary;
+
         try {
-            verify(pattern, Alphabet.Binary);
-            NFAGraph g = toGraph(pattern, Alphabet.Binary);
+            verify(pattern, alphabet);
+            System.out.println(preprocessQuantifier(pattern, alphabet));
+            NFAGraph g = toGraph(pattern, alphabet);
+            GraphViz graphViz = new GraphViz(Paths.get("parser_img"));
             DFAGraph h = g.toDFA();
             DFAGraph i = h.minimize();
-            Node dfaNode = h.getRootNode().getEdges()[Alphabet.Binary.invertMap.get('1')];
-            System.out.println(g.toDotString_colorNFA(dfaNode));
-            System.out.println(h.toDotString_colorDFA(dfaNode));
-            System.out.println(i.toDotString_colorMinDFA(dfaNode));
-        } catch (ParserException e) {
+
+            DFAGraph hn = h.negate();
+            DFAGraph in = hn.minimize();
+
+            String testString = "0011101011010";
+            DFANode dfaNode = h.getRootNode();
+            for (char ch : testString.toCharArray()) {
+                dfaNode = h.moveFromNode(dfaNode, ch);
+                if (dfaNode == null) {
+                    break;
+                }
+            }
+            DFANode negDFANode = hn.getRootNode();
+            for (char ch : testString.toCharArray()) {
+                negDFANode = hn.moveFromNode(negDFANode, ch);
+                if (negDFANode == null) {
+                    break;
+                }
+            }
+            Graph.getImage(graphViz, g.toDotString_colorNFA(dfaNode), "nfa");
+            Graph.getImage(graphViz, h.toDotString_colorDFA(dfaNode), "dfa");
+            Graph.getImage(graphViz, i.toDotString_colorMinDFA(dfaNode), "min_dfa");
+            Graph.getImage(graphViz, hn.toDotString_colorDFA(negDFANode), "dfa_n");
+            Graph.getImage(graphViz, in.toDotString_colorMinDFA(negDFANode), "min_dfa_n");
+        } catch (ParserException | IOException e) {
             e.printStackTrace();
         }
     }
