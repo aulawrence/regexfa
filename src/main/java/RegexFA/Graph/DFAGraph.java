@@ -7,9 +7,11 @@ import java.util.function.Function;
 
 public class DFAGraph extends Graph<DFANode> {
     private DFANode rootNode;
+    private StringBuilder edgeDotStringMemo;
 
     public DFAGraph(Alphabet alphabet) {
         super(alphabet);
+        edgeDotStringMemo = null;
     }
 
     public DFANode getRootNode() {
@@ -39,7 +41,14 @@ public class DFAGraph extends Graph<DFANode> {
     public Edge<DFANode> addEdge(DFANode fromNode, DFANode toNode, char ch) {
         Edge<DFANode> edge = super.addEdge(fromNode, toNode, ch);
         fromNode.setEdge(ch, toNode);
+        edgeDotStringMemo = null;
         return edge;
+    }
+
+    @Override
+    public void removeEdge(Edge<DFANode> edge) {
+        super.removeEdge(edge);
+        edgeDotStringMemo = null;
     }
 
     public String toDotString() {
@@ -87,9 +96,13 @@ public class DFAGraph extends Graph<DFANode> {
         if (rootNode != null) {
             sb.append(String.format("  0->%s;\n", rootNode.getId()));
         }
-        for (Edge<DFANode> edge : edgeList) {
-            sb.append(String.format("  %s->%s[label=\"%s\"];\n", edge.fromNode.getId(), edge.toNode.getId(), edge.label));
+        if (edgeDotStringMemo == null) {
+            edgeDotStringMemo = new StringBuilder();
+            for (Edge<DFANode> edge : edgeList) {
+                edgeDotStringMemo.append(String.format("  %s->%s[label=\"%s\"];\n", edge.fromNode.getId(), edge.toNode.getId(), edge.label));
+            }
         }
+        sb.append(edgeDotStringMemo);
         sb.append("\n");
         sb.append("}\n");
         return sb.toString();

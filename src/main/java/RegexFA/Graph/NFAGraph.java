@@ -7,9 +7,11 @@ import java.util.function.Function;
 
 public class NFAGraph extends Graph<Node> {
     private Node rootNode;
+    private StringBuilder edgeDotStringMemo;
 
     public NFAGraph(Alphabet alphabet) {
         super(alphabet);
+        edgeDotStringMemo = null;
     }
 
     public Node getRootNode() {
@@ -26,6 +28,18 @@ public class NFAGraph extends Graph<Node> {
         Node node = new Node(this, idString);
         this.nodeList.add(node);
         return node;
+    }
+
+    @Override
+    public Edge<Node> addEdge(Node fromNode, Node toNode, char ch) {
+        edgeDotStringMemo = null;
+        return super.addEdge(fromNode, toNode, ch);
+    }
+
+    @Override
+    public void removeEdge(Edge<Node> edge) {
+        edgeDotStringMemo = null;
+        super.removeEdge(edge);
     }
 
     public String toDotString() {
@@ -69,9 +83,13 @@ public class NFAGraph extends Graph<Node> {
         if (rootNode != null) {
             sb.append(String.format("  0->%s;\n", rootNode.getId()));
         }
-        for (Edge<Node> edge : edgeList) {
-            sb.append(String.format("  %s->%s[label=\"%s\"];\n", edge.fromNode.getId(), edge.toNode.getId(), edge.label));
+        if (edgeDotStringMemo == null) {
+            edgeDotStringMemo = new StringBuilder();
+            for (Edge<Node> edge : edgeList) {
+                edgeDotStringMemo.append(String.format("  %s->%s[label=\"%s\"];\n", edge.fromNode.getId(), edge.toNode.getId(), edge.label));
+            }
         }
+        sb.append(edgeDotStringMemo);
         sb.append("\n");
         sb.append("}\n");
         return sb.toString();
