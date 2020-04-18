@@ -234,6 +234,9 @@ public class DFAGraph extends Graph<DFANode> {
                 for (char ch : nullEdges) {
                     negDFA.addEdge(negCurr, negNullNode, ch);
                 }
+                for (int i = 1; i < alphabet.n; i++) {
+                    negDFA.addEdge(negNullNode, negNullNode, alphabet.alphabetList.get(i));
+                }
             }
         }
         return negDFA;
