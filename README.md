@@ -2,11 +2,14 @@
 Convert a small subset of regex to NFA/ DFA/ Min-DFA
 
 Supports
-- Greedy quantifiers `*`, `+`, `?`
-- Curly bracker quantifiers `{m}`, `{m,}`, `{m, n}`
-- Metacharacter `.`
 - Groups
 - Alternatives
+- Greedy quantifiers `*`, `+`, `?`
+- Curly bracket quantifiers `{m}`, `{m,}`, `{m, n}`
+- Metacharacter `.`
+
+Note that it currently can only determine whether the regex expression accepts the whole test string, i.e. whether `^<regex>$` accepts `<test-string>`.
+Some further work is needed to compute the strings captured by each group.     
 
 Taking from https://stackoverflow.com/a/32760631, the grammar should be:
 ```
@@ -34,9 +37,8 @@ where `<char>` represents the set of characters of the chosen alphabet, and `<di
 Maven is used to manage dependencies. See [pom.xml](pom.xml)
 
 ## Runtime Dependencies
-You need to install [graphviz](https://www.graphviz.org/) on your computer and configure the PATH so that the `dot` command is available.
-
-You can download the relevant installation files for your platform or install it using your package manager, for example: 
+You need to install `graphviz` on your computer and configure the PATH so that the `dot` command is available.
+You can download the installation files for your platform from the [official website](https://www.graphviz.org/), or install it using your package manager, e.g.: 
 
 Ubuntu:
 ```
