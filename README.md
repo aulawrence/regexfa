@@ -1,24 +1,34 @@
 # RegexFA
-Convert a minimal subset of regex to NFA/ DFA/ Min-DFA
+Convert a small subset of regex to NFA/ DFA/ Min-DFA
 
 Supports
-- Greedy quantifiers *, +, ?
+- Greedy quantifiers `*`, `+`, `?`
+- Curly bracker quantifiers `{m}`, `{m,}`, `{m, n}`
+- Metacharacter `.`
 - Groups
 - Alternatives
 
 Taking from https://stackoverflow.com/a/32760631, the grammar should be:
 ```
-<expression> ::= <term> '|' <expression>
-               | <term>
-<term>       ::= <factor> <term>
-               | <factor>
-<factor>     ::= <atom> '*'
-               | <atom> '+'
-               | <atom> '?'
-               | <atom>
-<atom>       ::= <char>
-               | '(' <expression> ')'
+<expression>     ::= <term> '|' <expression>
+                   | <term>
+<term>           ::= <factor> <term>
+                   | <factor>
+<factor>         ::= <atom> <quantifier>
+                   | <atom>
+<atom>           ::= <char>
+                   | '.'
+                   | '(' <expression> ')'
+<quantifier>     ::= '*'
+                   | '+'
+                   | '?'
+                   | '{' <number> '}'
+                   | '{' <number> ',' '}'
+                   | '{' <number> ',' <number> '}'
+<number>         ::= <number> <digit>
+                   | <digit>
 ```
+where `<char>` represents the set of characters of the chosen alphabet, and `<digit>` represents the set of decimal digits.
 
 ## Dependencies
 Maven is used to manage dependencies. See [pom.xml](pom.xml)
