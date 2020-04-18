@@ -197,6 +197,48 @@ public class DFAGraph extends Graph<DFANode> {
         return graph;
     }
 
+    public DFAGraph negate() {
+        DFAGraph negDFA = new DFAGraph(alphabet);
+        DFANode negRoot = negDFA.addNode();
+        negRoot.setAccept(!rootNode.isAccept());
+        negDFA.setRootNode(negRoot);
+        HashMap<DFANode, DFANode> nodeMap = new HashMap<>();
+        Queue<DFANode> nodeQueue = new ArrayDeque<>();
+        nodeMap.put(rootNode, negRoot);
+        nodeQueue.add(rootNode);
+        while (!nodeQueue.isEmpty()) {
+            DFANode curr = nodeQueue.poll();
+            DFANode negCurr = nodeMap.get(curr);
+            Set<Character> nullEdges = new HashSet<>();
+//          Init i = 1 to ignore Alphabet.Empty
+            for (int i = 1; i < alphabet.n; i++) {
+                DFANode node = curr.getEdges()[i];
+                if (node == null) {
+                    nullEdges.add(alphabet.alphabetList.get(i));
+                } else {
+                    DFANode negNode;
+                    if (!nodeMap.containsKey(node)) {
+                        negNode = negDFA.addNode();
+                        negNode.setAccept(!node.isAccept());
+                        nodeMap.put(node, negNode);
+                        nodeQueue.add(node);
+                    } else {
+                        negNode = nodeMap.get(node);
+                    }
+                    negDFA.addEdge(negCurr, negNode, alphabet.alphabetList.get(i));
+                }
+            }
+            if (!nullEdges.isEmpty()) {
+                DFANode negNullNode = negDFA.addNode();
+                negNullNode.setAccept(true);
+                for (char ch : nullEdges) {
+                    negDFA.addEdge(negCurr, negNullNode, ch);
+                }
+            }
+        }
+        return negDFA;
+    }
+
     public DFANode moveFromNode(DFANode curr, char ch) {
         return curr.getEdges()[alphabet.invertMap.get(ch)];
     }
