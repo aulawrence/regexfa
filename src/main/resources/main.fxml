@@ -1,66 +1,35 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.scene.control.*?>
-<?import javafx.scene.image.*?>
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.*?>
 
 <AnchorPane prefHeight="600.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/10.0.2-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="RegexFA.Controller.MainController">
     <children>
-      <AnchorPane AnchorPane.leftAnchor="12.0" AnchorPane.rightAnchor="12.0" AnchorPane.topAnchor="12.0">
-         <children>
-              <Label text="Alphabet:" AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="5.0" />
-              <ChoiceBox fx:id="choiceBox_alphabet" prefWidth="150.0" AnchorPane.leftAnchor="150.0" AnchorPane.topAnchor="0.0" />
-         </children>
-      </AnchorPane>
-      <AnchorPane AnchorPane.leftAnchor="12.0" AnchorPane.rightAnchor="12.0" AnchorPane.topAnchor="60.0">
-         <children>
-              <Label text="Regular Expression:" AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="5.0" />
-              <Text fx:id="text_regex" text="regex" AnchorPane.leftAnchor="150.0" AnchorPane.rightAnchor="60.0" AnchorPane.topAnchor="5.0" />
-              <TextField fx:id="textField_regex" onKeyReleased="#onKeyReleased_textFieldRegex" maxHeight="-Infinity" minHeight="-Infinity" prefHeight="26.0" prefWidth="559.0" AnchorPane.leftAnchor="150.0" AnchorPane.rightAnchor="60.0" AnchorPane.topAnchor="0.0" />
-              <Text fx:id="text_errRegex" text="regexErr" AnchorPane.leftAnchor="150.0" AnchorPane.rightAnchor="60.0" AnchorPane.topAnchor="27.0" />
-              <Button fx:id="button_regex" mnemonicParsing="false" onMouseClicked="#onClick_buttonRegex" onKeyReleased="#onKeyReleased_buttonRegex" text="Ok" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
-         </children>
-      </AnchorPane>
-      <AnchorPane layoutX="12.0" layoutY="101.0" AnchorPane.leftAnchor="12.0" AnchorPane.rightAnchor="12.0" AnchorPane.topAnchor="108.0">
-         <children>
-              <Label text="Test String:" AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="5.0" />
-              <TextField fx:id="textField_testString" onKeyReleased="#onKeyReleased_textFieldTestString" disable="true" maxHeight="-Infinity" minHeight="-Infinity" prefHeight="26.0" prefWidth="559.0" AnchorPane.leftAnchor="150.0" AnchorPane.rightAnchor="60.0" AnchorPane.topAnchor="0.0" />
-              <TextFlow fx:id="textFlow_testString" focusTraversable="true" onKeyPressed="#onKeyPressed_textFlowTestString" onKeyReleased="#onKeyReleased_textFlowTestString" prefHeight="26.0" AnchorPane.leftAnchor="150.0" AnchorPane.rightAnchor="60.0" AnchorPane.topAnchor="5.0" />
-              <Text fx:id="text_errTestString" text="testStringErr" AnchorPane.leftAnchor="150.0" AnchorPane.rightAnchor="60.0" AnchorPane.topAnchor="27.0" />
-              <Button fx:id="button_testString" mnemonicParsing="false" onMouseClicked="#onClick_buttonTestString" onKeyReleased="#onKeyReleased_buttonTestString" text="Ok" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
-         </children>
-      </AnchorPane>
-      <AnchorPane layoutX="12.0" layoutY="150.0" AnchorPane.leftAnchor="12.0" AnchorPane.rightAnchor="12.0" AnchorPane.topAnchor="150.0">
-         <children>
-              <Label text="Graph (Dot Notation):" AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="0.0" />
-              <TextArea fx:id="textArea_display" editable="false" prefHeight="72.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="18.0" />
-         </children>
-      </AnchorPane>
-        <GridPane prefHeight="366.0" prefWidth="800.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="240.0">
-            <columnConstraints>
-                <ColumnConstraints hgrow="NEVER" percentWidth="33.3" />
-                <ColumnConstraints hgrow="NEVER" percentWidth="33.3" />
-                <ColumnConstraints hgrow="NEVER" percentWidth="33.3" />
-            </columnConstraints>
-            <rowConstraints>
-                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="NEVER" />
-                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="ALWAYS" />
-            </rowConstraints>
+        <AnchorPane AnchorPane.leftAnchor="12.0" AnchorPane.rightAnchor="12.0" AnchorPane.topAnchor="12.0">
             <children>
-                <ScrollPane minHeight="0.0" minWidth="0.0" onMouseClicked="#onClick_NFA" prefHeight="160.0" prefWidth="100.0" GridPane.columnIndex="0" GridPane.rowIndex="1">
-                    <ImageView fx:id="image_nfa" preserveRatio="true" />
-                </ScrollPane>
-                <ScrollPane minHeight="0.0" minWidth="0.0" onMouseClicked="#onClick_DFA" prefHeight="160.0" prefWidth="100.0" GridPane.columnIndex="1" GridPane.rowIndex="1">
-                    <ImageView fx:id="image_dfa" preserveRatio="true" />
-                </ScrollPane>
-                <ScrollPane minHeight="0.0" minWidth="0.0" onMouseClicked="#onClick_MinDFA" prefHeight="160.0" prefWidth="100.0" GridPane.columnIndex="2" GridPane.rowIndex="1">
-                    <ImageView fx:id="image_min_dfa" preserveRatio="true" />
-                </ScrollPane>
-                <Label fx:id="label_nfa" alignment="CENTER" maxWidth="Infinity" onMouseClicked="#onClick_NFA" text="NFA" />
-                <Label fx:id="label_dfa" alignment="CENTER" maxWidth="Infinity" onMouseClicked="#onClick_DFA" text="DFA" GridPane.columnIndex="1" />
-                <Label fx:id="label_min_dfa" alignment="CENTER" maxWidth="Infinity" onMouseClicked="#onClick_MinDFA" text="Min-DFA" GridPane.columnIndex="2" />
+                <Label text="Alphabet:" AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="5.0" />
+                <ChoiceBox fx:id="choiceBox_alphabet" prefWidth="150.0" AnchorPane.leftAnchor="150.0" AnchorPane.topAnchor="0.0" />
             </children>
-        </GridPane>
+        </AnchorPane>
+        <AnchorPane AnchorPane.leftAnchor="12.0" AnchorPane.rightAnchor="12.0" AnchorPane.topAnchor="60.0">
+            <children>
+                <Label text="Regular Expression:" AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="5.0" />
+                <Text fx:id="text_regex" text="regex" AnchorPane.leftAnchor="150.0" AnchorPane.rightAnchor="60.0" AnchorPane.topAnchor="5.0" />
+                <TextField fx:id="textField_regex" maxHeight="-Infinity" minHeight="-Infinity" onKeyReleased="#onKeyReleased_textFieldRegex" prefHeight="26.0" prefWidth="559.0" AnchorPane.leftAnchor="150.0" AnchorPane.rightAnchor="60.0" AnchorPane.topAnchor="0.0" />
+                <Text fx:id="text_errRegex" text="regexErr" AnchorPane.leftAnchor="150.0" AnchorPane.rightAnchor="60.0" AnchorPane.topAnchor="27.0" />
+                <Button fx:id="button_regex" mnemonicParsing="false" onKeyReleased="#onKeyReleased_buttonRegex" onMouseClicked="#onClick_buttonRegex" text="Ok" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+            </children>
+        </AnchorPane>
+        <AnchorPane AnchorPane.leftAnchor="12.0" AnchorPane.rightAnchor="12.0" AnchorPane.topAnchor="108.0">
+            <children>
+                <Label text="Test String:" AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="5.0" />
+                <TextField fx:id="textField_testString" disable="true" maxHeight="-Infinity" minHeight="-Infinity" onKeyReleased="#onKeyReleased_textFieldTestString" prefHeight="26.0" prefWidth="559.0" AnchorPane.leftAnchor="150.0" AnchorPane.rightAnchor="60.0" AnchorPane.topAnchor="0.0" />
+                <TextFlow fx:id="textFlow_testString" focusTraversable="true" onKeyPressed="#onKeyPressed_textFlowTestString" onKeyReleased="#onKeyReleased_textFlowTestString" prefHeight="26.0" AnchorPane.leftAnchor="150.0" AnchorPane.rightAnchor="60.0" AnchorPane.topAnchor="5.0" />
+                <Text fx:id="text_errTestString" text="testStringErr" AnchorPane.leftAnchor="150.0" AnchorPane.rightAnchor="60.0" AnchorPane.topAnchor="27.0" />
+                <Button fx:id="button_testString" mnemonicParsing="false" onKeyReleased="#onKeyReleased_buttonTestString" onMouseClicked="#onClick_buttonTestString" text="Ok" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+            </children>
+        </AnchorPane>
+        <AnchorPane fx:id="anchorPane_graphView" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="150.0" />
     </children>
 </AnchorPane>

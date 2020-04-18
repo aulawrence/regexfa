@@ -11,11 +11,6 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 
 public class MainModel extends Model implements Closeable {
-    public enum GraphChoice {
-        NFA,
-        DFA,
-        MinDFA
-    }
 
     private final GraphViz graphViz;
 
@@ -28,14 +23,12 @@ public class MainModel extends Model implements Closeable {
     private String testStringErrorMsg;
     private int testStringPos;
     private final ArrayList<Node> testStringDFANodes;
-    private GraphChoice selection;
     private NFAGraph nfa;
     private DFAGraph dfa;
     private DFAGraph min_dfa;
 
     public MainModel() throws IOException {
         regexSuccess = false;
-        selection = GraphChoice.NFA;
         regex = "";
         testString = "";
         testStringPos = -1;
@@ -88,11 +81,7 @@ public class MainModel extends Model implements Closeable {
         }
     }
 
-    public synchronized String getDotString() {
-        return getDotString(selection);
-    }
-
-    public synchronized String getDotString(GraphChoice graphChoice) {
+    public synchronized String getDotString(GraphViewModel.GraphChoice graphChoice) {
         Node dfaNode = null;
         if (testStringPos + 1 < testStringDFANodes.size()) {
             dfaNode = testStringDFANodes.get(testStringPos + 1);
@@ -109,16 +98,8 @@ public class MainModel extends Model implements Closeable {
         }
     }
 
-    public synchronized Path getImage(GraphChoice graphChoice, String imgName) {
+    public synchronized Path getImage(GraphViewModel.GraphChoice graphChoice, String imgName) {
         return Graph.getImage(graphViz, getDotString(graphChoice), imgName);
-    }
-
-    public synchronized GraphChoice getSelection() {
-        return selection;
-    }
-
-    public synchronized void setSelection(GraphChoice selection) {
-        this.selection = selection;
     }
 
     public synchronized boolean isRegexSuccess() {

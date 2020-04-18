@@ -1,15 +1,21 @@
 package RegexFA.Controller;
 
 import RegexFA.Alphabet;
+import RegexFA.Model.GraphViewModel;
 import RegexFA.Model.MainModel;
+import io.reactivex.rxjava3.annotations.NonNull;
+import io.reactivex.rxjava3.core.Observer;
+import io.reactivex.rxjava3.disposables.Disposable;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
-import javafx.scene.control.*;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.control.Button;
+import javafx.scene.control.ChoiceBox;
+import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.AnchorPane;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextFlow;
 
@@ -17,22 +23,16 @@ import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.ResourceBundle;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import static RegexFA.Model.MainModel.GraphChoice.*;
+import static RegexFA.Model.GraphViewModel.GraphChoice;
 
 
 public class MainController extends Controller<MainModel> {
-    public TextArea textArea_display;
     public ChoiceBox<Alphabet> choiceBox_alphabet;
-    public ImageView image_nfa;
-    public ImageView image_dfa;
-    public ImageView image_min_dfa;
-    public Label label_nfa;
-    public Label label_dfa;
-    public Label label_min_dfa;
     public TextField textField_regex;
     public Text text_regex;
     public Text text_errRegex;
@@ -41,13 +41,17 @@ public class MainController extends Controller<MainModel> {
     public Text text_errTestString;
     public Button button_testString;
     public TextFlow textFlow_testString;
+    public AnchorPane anchorPane_graphView;
+
+    private GraphViewController graphViewController;
 
     private final ArrayList<Text> testStringArrayList;
     private final ExecutorService executor;
 
-    private Path imagePath_nfa;
-    private Path imagePath_dfa;
-    private Path imagePath_min_dfa;
+    private final HashMap<GraphChoice, Path> imagePath;
+    private final HashMap<GraphChoice, Boolean> imageSubscription;
+
+    private GraphChoice dotStringChoice = GraphChoice.NFA;
 
     private boolean regexEditing = true;
     private boolean testStringEditing = true;
@@ -60,6 +64,12 @@ public class MainController extends Controller<MainModel> {
         super(model);
         testStringArrayList = new ArrayList<>();
         executor = Executors.newFixedThreadPool(3);
+        imagePath = new HashMap<>();
+        imageSubscription = new HashMap<>();
+        for (GraphChoice graphChoice : GraphChoice.values()) {
+            imagePath.put(graphChoice, null);
+            imageSubscription.put(graphChoice, true);
+        }
     }
 
     @FXML
@@ -104,21 +114,6 @@ public class MainController extends Controller<MainModel> {
         if (keyEvent.getCode() == KeyCode.ENTER) {
             toggleTestString();
         }
-    }
-
-    @FXML
-    private void onClick_NFA(MouseEvent mouseEvent) {
-        modelSetSelection(NFA);
-    }
-
-    @FXML
-    private void onClick_DFA(MouseEvent mouseEvent) {
-        modelSetSelection(DFA);
-    }
-
-    @FXML
-    private void onClick_MinDFA(MouseEvent mouseEvent) {
-        modelSetSelection(MinDFA);
     }
 
     @FXML
@@ -167,21 +162,6 @@ public class MainController extends Controller<MainModel> {
         }
     }
 
-
-    private void modelSetSelection(MainModel.GraphChoice choice) {
-        executor.execute(
-                () -> {
-                    model.setSelection(choice);
-                    Platform.runLater(
-                            () -> {
-                                updateTextArea();
-                                updateLabels();
-                            }
-                    );
-                }
-        );
-    }
-
     private void toggleRegex() {
         if (regexEditing) {
             executor.execute(
@@ -190,8 +170,8 @@ public class MainController extends Controller<MainModel> {
                         Platform.runLater(
                                 () -> {
                                     updateRegex();
+                                    updateDotString();
                                     updateImages();
-                                    updateTextArea();
                                 }
                         );
                     }
@@ -213,71 +193,6 @@ public class MainController extends Controller<MainModel> {
             );
         } else {
             updateTestString();
-        }
-    }
-
-    private void updateTextArea() {
-        if (model.isRegexSuccess()) {
-            textArea_display.setText(model.getDotString());
-        } else {
-            textArea_display.setText("");
-        }
-    }
-
-    private void updateImages() {
-        if (model.isRegexSuccess()) {
-            executor.execute(
-                    () -> {
-                        imagePath_nfa = model.getImage(NFA, "nfa");
-                        imagePath_dfa = model.getImage(DFA, "dfa");
-                        imagePath_min_dfa = model.getImage(MinDFA, "min_dfa");
-                        Platform.runLater(
-                                () -> {
-                                    if (imagePath_nfa != null) {
-                                        image_nfa.setImage(new Image(imagePath_nfa.toUri().toString()));
-                                        image_nfa.setVisible(true);
-                                    }
-                                    if (imagePath_dfa != null) {
-                                        image_dfa.setImage(new Image(imagePath_dfa.toUri().toString()));
-                                        image_dfa.setVisible(true);
-                                    }
-                                    if (imagePath_nfa != null) {
-                                        image_min_dfa.setImage(new Image(imagePath_min_dfa.toUri().toString()));
-                                        image_min_dfa.setVisible(true);
-                                    }
-                                }
-                        );
-                    }
-            );
-        } else {
-            image_nfa.setVisible(false);
-            image_dfa.setVisible(false);
-            image_min_dfa.setVisible(false);
-        }
-    }
-
-    private void updateLabels() {
-        label_nfa.setUnderline(false);
-        label_nfa.setStyle("-fx-font-weight: normal;");
-        label_dfa.setUnderline(false);
-        label_dfa.setStyle("-fx-font-weight: normal;");
-        label_min_dfa.setUnderline(false);
-        label_min_dfa.setStyle("-fx-font-weight: normal;");
-        switch (model.getSelection()) {
-            case DFA:
-                label_dfa.setUnderline(true);
-                label_dfa.setStyle("-fx-font-weight: bold;");
-                break;
-            case NFA:
-                label_nfa.setUnderline(true);
-                label_nfa.setStyle("-fx-font-weight: bold;");
-                break;
-            case MinDFA:
-                label_min_dfa.setUnderline(true);
-                label_min_dfa.setStyle("-fx-font-weight: bold;");
-                break;
-            default:
-                throw new IllegalStateException();
         }
     }
 
@@ -310,6 +225,16 @@ public class MainController extends Controller<MainModel> {
             textField_testString.setDisable(true);
             button_testString.setDisable(true);
         }
+    }
+
+    private void handle(GraphViewController.EmitMessage.RequestImageSubscription msg) {
+        imageSubscription.put(msg.graphChoice, msg.subscribe);
+        updateImages(true, msg.graphChoice);
+    }
+
+    private void handle(GraphViewController.EmitMessage.RequestDotString msg) {
+        dotStringChoice = msg.graphChoice;
+        updateDotString();
     }
 
     private void updateTestString() {
@@ -349,8 +274,6 @@ public class MainController extends Controller<MainModel> {
 
     private void updatePos() {
         int pos = model.getTestStringPos();
-
-
         for (int i = 0; i < testStringArrayList.size(); i++) {
             if (i < pos) {
                 testStringArrayList.get(i).styleProperty().setValue("-fx-underline:true");
@@ -360,12 +283,50 @@ public class MainController extends Controller<MainModel> {
                 testStringArrayList.get(i).styleProperty().setValue("");
             }
         }
-
-
-        updateTextArea();
+        updateDotString();
         updateImages();
         textFlow_testString.requestFocus();
     }
+
+    private void updateDotString() {
+        if (model.isRegexSuccess()) {
+            graphViewController.getObserver().onNext(new GraphViewController.RecvMessage.ReceiveDotString(model.getDotString(dotStringChoice)));
+        } else {
+            graphViewController.getObserver().onNext(new GraphViewController.RecvMessage.ReceiveDotString(""));
+        }
+    }
+
+    private void updateImages() {
+        for (GraphChoice graphChoice : GraphChoice.values()) {
+            updateImages(false, graphChoice);
+        }
+    }
+
+    private void updateImages(boolean nullOnly, GraphChoice graphChoice) {
+        if (model.isRegexSuccess()) {
+            if (imageSubscription.get(graphChoice) && (!nullOnly || imagePath.get(graphChoice) == null)) {
+                executor.execute(
+                        () -> {
+                            imagePath.put(graphChoice, model.getImage(graphChoice, graphChoice.toString()));
+                            Platform.runLater(
+                                    () -> graphViewController.getObserver().onNext(new GraphViewController.RecvMessage.ReceiveImage(graphChoice, imagePath.get(graphChoice)))
+                            );
+                        }
+                );
+            } else if (!nullOnly && !imageSubscription.get(graphChoice)) {
+                imagePath.put(graphChoice, null);
+                Platform.runLater(
+                        () -> graphViewController.getObserver().onNext(new GraphViewController.RecvMessage.ReceiveImage(graphChoice, null))
+                );
+            }
+        } else {
+            imagePath.put(graphChoice, null);
+            Platform.runLater(
+                    () -> graphViewController.getObserver().onNext(new GraphViewController.RecvMessage.ReceiveImage(graphChoice, null))
+            );
+        }
+    }
+
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -386,7 +347,41 @@ public class MainController extends Controller<MainModel> {
         textFlow_testString.setVisible(false);
         text_errTestString.setVisible(false);
 
-        updateLabels();
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/graphView.fxml"));
+        try {
+            graphViewController = new GraphViewController(new GraphViewModel(), executor);
+            graphViewController.getObservable().subscribe(new Observer<GraphViewController.EmitMessage.Base>() {
+                @Override
+                public void onSubscribe(@NonNull Disposable d) {
+
+                }
+
+                @Override
+                public void onNext(GraphViewController.EmitMessage.@NonNull Base base) {
+                    if (base instanceof GraphViewController.EmitMessage.RequestDotString) {
+                        GraphViewController.EmitMessage.RequestDotString msg = (GraphViewController.EmitMessage.RequestDotString) base;
+                        handle(msg);
+                    } else if (base instanceof GraphViewController.EmitMessage.RequestImageSubscription) {
+                        GraphViewController.EmitMessage.RequestImageSubscription msg = (GraphViewController.EmitMessage.RequestImageSubscription) base;
+                        handle(msg);
+                    }
+                }
+
+                @Override
+                public void onError(@NonNull Throwable e) {
+
+                }
+
+                @Override
+                public void onComplete() {
+
+                }
+            });
+            loader.setController(graphViewController);
+            anchorPane_graphView.getChildren().add(loader.load());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public void shutdown() {

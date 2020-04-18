@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" xmlns="http://javafx.com/javafx/10.0.2-internal" xmlns:fx="http://javafx.com/fxml/1">
+    <children>
+        <AnchorPane AnchorPane.leftAnchor="12.0" AnchorPane.rightAnchor="12.0" AnchorPane.topAnchor="0.0">
+            <children>
+                <Label text="Graph (Dot Notation):" AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="0.0" />
+                <TextArea fx:id="textArea_display" editable="false" prefHeight="72.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="18.0" />
+            </children>
+        </AnchorPane>
+        <GridPane fx:id="gridPane_images" prefHeight="360.0" prefWidth="800.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="90.0">
+            <columnConstraints>
+                <ColumnConstraints hgrow="NEVER" percentWidth="33.3" />
+                <ColumnConstraints hgrow="NEVER" percentWidth="33.3" />
+                <ColumnConstraints hgrow="NEVER" percentWidth="33.3" />
+            </columnConstraints>
+            <rowConstraints>
+                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="NEVER" />
+                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="ALWAYS" />
+                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="NEVER" />
+            </rowConstraints>
+            <children>
+                <Label fx:id="label_nfa" alignment="CENTER" maxWidth="Infinity" onMouseClicked="#onClick_NFA" text="NFA" />
+                <Label fx:id="label_dfa" alignment="CENTER" maxWidth="Infinity" onMouseClicked="#onClick_DFA" text="DFA" GridPane.columnIndex="1" />
+                <Label fx:id="label_min_dfa" alignment="CENTER" maxWidth="Infinity" onMouseClicked="#onClick_MinDFA" text="Min-DFA" GridPane.columnIndex="2" />
+                <ScrollPane minHeight="0.0" minWidth="0.0" onMouseClicked="#onClick_NFA" prefHeight="160.0" prefWidth="100.0" GridPane.columnIndex="0" GridPane.rowIndex="1">
+                    <ImageView fx:id="imageView_nfa" preserveRatio="true" />
+                </ScrollPane>
+                <ScrollPane minHeight="0.0" minWidth="0.0" onMouseClicked="#onClick_DFA" prefHeight="160.0" prefWidth="100.0" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                    <ImageView fx:id="imageView_dfa" preserveRatio="true" />
+                </ScrollPane>
+                <ScrollPane minHeight="0.0" minWidth="0.0" onMouseClicked="#onClick_MinDFA" prefHeight="160.0" prefWidth="100.0" GridPane.columnIndex="2" GridPane.rowIndex="1">
+                    <ImageView fx:id="imageView_min_dfa" preserveRatio="true" />
+                </ScrollPane>
+                <Slider fx:id="slider_nfa" blockIncrement="0.25" majorTickUnit="0.5" max="2.0" min="-2.0" minorTickCount="1" showTickLabels="true" showTickMarks="true" GridPane.rowIndex="2">
+                    <padding>
+                        <Insets left="12.0" right="12.0" />
+                    </padding>
+                </Slider>
+                <Slider fx:id="slider_dfa" blockIncrement="0.25" majorTickUnit="0.5" max="2.0" min="-2.0" minorTickCount="1" showTickLabels="true" showTickMarks="true" GridPane.columnIndex="1" GridPane.rowIndex="2">
+                    <padding>
+                        <Insets left="12.0" right="12.0" />
+                    </padding>
+                </Slider>
+                <Slider fx:id="slider_min_dfa" blockIncrement="0.25" majorTickUnit="0.5" max="2.0" min="-2.0" minorTickCount="1" showTickLabels="true" showTickMarks="true" GridPane.columnIndex="2" GridPane.rowIndex="2">
+                    <padding>
+                        <Insets left="12.0" right="12.0" />
+                    </padding>
+                </Slider>
+            </children>
+        </GridPane>
+    </children>
+</AnchorPane>
