@@ -1,3 +1,7 @@
+/parser_img/
 /target/
+
 /.idea/
 *.iml
+
+.DS_Store

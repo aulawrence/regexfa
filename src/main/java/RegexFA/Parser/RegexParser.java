@@ -270,6 +270,7 @@ public class RegexParser {
                 }
             }
         }
+        sb.append(currAtom);
         return sb.toString();
     }
 
