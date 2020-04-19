@@ -23,8 +23,12 @@ public class DFANode extends Node {
         edges[alphabet.invertMap.get(ch)] = node;
     }
 
-    public DFANode[] getEdges() {
-        return edges;
+    public DFANode getEdge(char ch) {
+        return edges[alphabet.invertMap.get(ch)];
+    }
+
+    public DFANode getEdge(int i) {
+        return edges[i];
     }
 
     @Override

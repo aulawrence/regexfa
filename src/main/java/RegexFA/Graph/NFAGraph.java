@@ -7,11 +7,35 @@ import java.util.function.Function;
 
 public class NFAGraph extends Graph<Node> {
     private Node rootNode;
+    private Node terminalNode;
     private StringBuilder edgeDotStringMemo;
 
     public NFAGraph(Alphabet alphabet) {
         super(alphabet);
         edgeDotStringMemo = null;
+    }
+
+    public NFAGraph(DFAGraph acceptanceGraph) {
+        this(acceptanceGraph.alphabet);
+        HashMap<DFANode, Node> dfaNfaNodeMap = new HashMap<>();
+        Set<Node> acceptNodeSet = new HashSet<>();
+        for (DFANode dfaNode : acceptanceGraph.getNodeList()) {
+            Node nfaNode = addNode();
+            if (dfaNode.isAccept()) {
+                nfaNode.setAccept(true);
+                acceptNodeSet.add(nfaNode);
+            }
+            dfaNfaNodeMap.put(dfaNode, nfaNode);
+        }
+        for (Edge<DFANode> dfaEdge : acceptanceGraph.getEdgeList()) {
+            addEdge(dfaNfaNodeMap.get(dfaEdge.fromNode), dfaNfaNodeMap.get(dfaEdge.toNode), dfaEdge.label);
+        }
+        setRootNode(dfaNfaNodeMap.get(acceptanceGraph.getRootNode()));
+        Node termNode = addNode();
+        setTerminalNode(termNode);
+        for (Node nfaNode : acceptNodeSet) {
+            addEdge(nfaNode, termNode, Alphabet.Empty);
+        }
     }
 
     public Node getRootNode() {
@@ -20,6 +44,14 @@ public class NFAGraph extends Graph<Node> {
 
     public void setRootNode(Node rootNode) {
         this.rootNode = rootNode;
+    }
+
+    public Node getTerminalNode() {
+        return terminalNode;
+    }
+
+    public void setTerminalNode(Node terminalNode) {
+        this.terminalNode = terminalNode;
     }
 
     @Override
@@ -123,13 +155,21 @@ public class NFAGraph extends Graph<Node> {
     }
 
     public DFAGraph toDFA() {
-        DFAGraph dfa = new DFAGraph(alphabet);
+        return toDFA(this);
+    }
+
+    public NFAGraph or(NFAGraph other) {
+        return or(this, other);
+    }
+
+    public static DFAGraph toDFA(NFAGraph nfaGraph) {
+        DFAGraph dfa = new DFAGraph(nfaGraph.getAlphabet());
         Map<Node, Map<Character, List<Node>>> listMap = new HashMap<>();
-        for (Node node : nodeList) {
+        for (Node node : nfaGraph.getNodeList()) {
             listMap.put(node, new HashMap<>());
         }
 
-        for (Edge<Node> edge : edgeList) {
+        for (Edge<Node> edge : nfaGraph.getEdgeList()) {
             if (listMap.get(edge.fromNode).containsKey(edge.label)) {
                 listMap.get(edge.fromNode).get(edge.label).add(edge.toNode);
             } else {
@@ -142,7 +182,7 @@ public class NFAGraph extends Graph<Node> {
         Map<Set<Node>, DFANode> nodeMap = new HashMap<>();
         Queue<Set<Node>> setQueue = new ArrayDeque<>();
 
-        Set<Node> rootPowerSet = getNodesReachableByEmpty(listMap, rootNode);
+        Set<Node> rootPowerSet = getNodesReachableByEmpty(listMap, nfaGraph.getRootNode());
 
         DFANode rootPowerNode = dfa.addNode(rootPowerSet);
         if (rootPowerSet.stream().anyMatch(Node::isAccept)) {
@@ -183,4 +223,45 @@ public class NFAGraph extends Graph<Node> {
         return dfa;
     }
 
+    public static NFAGraph or(NFAGraph g1, NFAGraph g2) {
+        assert g1.alphabet == g2.alphabet;
+        Alphabet alphabet = g1.alphabet;
+        NFAGraph g = new NFAGraph(alphabet);
+        Node rootNode = g.addNode();
+        g.setRootNode(rootNode);
+
+        HashMap<Node, Node> map = new HashMap<>();
+        for (Node node1 : g1.getNodeList()) {
+            Node node = g.addNode();
+            if (node1.isAccept()) {
+                node.setAccept(true);
+            }
+            map.put(node1, node);
+        }
+        for (Edge<Node> edge : g1.getEdgeList()) {
+            g.addEdge(map.get(edge.fromNode), map.get(edge.toNode), edge.label);
+        }
+        g.addEdge(rootNode, map.get(g1.getRootNode()), Alphabet.Empty);
+        Node g1TermOnG = map.get(g1.getTerminalNode());
+
+        map = new HashMap<>();
+        for (Node node2 : g2.getNodeList()) {
+            Node node = g.addNode();
+            if (node2.isAccept()) {
+                node.setAccept(true);
+            }
+            map.put(node2, node);
+        }
+        for (Edge<Node> edge : g2.getEdgeList()) {
+            g.addEdge(map.get(edge.fromNode), map.get(edge.toNode), edge.label);
+        }
+        g.addEdge(rootNode, map.get(g2.getRootNode()), Alphabet.Empty);
+
+        Node termNode = g.addNode();
+
+        g.addEdge(g1TermOnG, termNode, Alphabet.Empty);
+        g.addEdge(map.get(g2.getTerminalNode()), termNode, Alphabet.Empty);
+
+        return g;
+    }
 }

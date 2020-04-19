@@ -106,6 +106,10 @@ public abstract class Graph<N extends Node> {
         return edgeList;
     }
 
+    @Override
+    public final boolean equals(Object obj) {
+        return super.equals(obj);
+    }
 }
 
 

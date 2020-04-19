@@ -6,6 +6,7 @@ import RegexFA.Graph.*;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Stack;
 
 public class RegexParser {
@@ -76,7 +77,7 @@ public class RegexParser {
                         prevAtom = false;
                         break;
                     default:
-                        if (!alphabet.alphabetSet.contains(ch)) {
+                        if (ch == Alphabet.Empty || !alphabet.alphabetSet.contains(ch)) {
                             throw new ParserException(String.format("'%s' at position %d is not valid. This character is not in the alphabet.", ch, i));
                         }
                         prevAtom = true;
@@ -388,6 +389,7 @@ public class RegexParser {
             }
         }
         curr.setAccept(true);
+        graph.setTerminalNode(curr);
         if (groupStack.pop() != startNode) throw new AssertionError();
         if (!orStack.isEmpty()) throw new AssertionError();
         if (!groupStack.isEmpty()) throw new AssertionError();
@@ -395,44 +397,45 @@ public class RegexParser {
     }
 
     public static void main(String[] args) {
-//        String pattern = "(0|1(01*0)*1)*";
 //        String pattern = "1{5,7}(0{0,2}){2}1{1,}(01){2}(10){2,2}";
-        String pattern = "(0|1(01*0)*1){2,5}";
-//        String pattern = "(0|1){5}";
-//        Alphabet alphabet = Alphabet.Decimal;
+//        String pattern = "(0|1(01*0)*1){2,5}";
+//        String pattern1 = "(0|1)*1001";
+//        String pattern2 = "(0|1)*(10)+(01)+";
+        String pattern1 = "(0|1(01*0)*1)*";
+        String pattern2 = "(0|1(01*0)*1){0,5}";
         Alphabet alphabet = Alphabet.Binary;
 
         try {
-            verify(pattern, alphabet);
-            System.out.println(preprocessQuantifier(pattern, alphabet));
-            NFAGraph g = toGraph(pattern, alphabet);
             GraphViz graphViz = new GraphViz(Paths.get("parser_img"));
-            DFAGraph h = g.toDFA();
-            DFAGraph i = h.minimize();
+            verify(pattern1, alphabet);
+            System.out.println(preprocessQuantifier(pattern1, alphabet));
+            NFAGraph g1 = toGraph(pattern1, alphabet);
+            DFAGraph h1 = g1.toDFA().minimize();
 
-            DFAGraph hn = h.negate();
-            DFAGraph in = hn.minimize();
+            verify(pattern2, alphabet);
+            System.out.println(preprocessQuantifier(pattern2, alphabet));
+            NFAGraph g2 = toGraph(pattern2, alphabet);
+            DFAGraph h2 = g2.toDFA().minimize();
 
-            String testString = "0011101011010";
-            DFANode dfaNode = h.getRootNode();
-            for (char ch : testString.toCharArray()) {
-                dfaNode = h.moveFromNode(dfaNode, ch);
-                if (dfaNode == null) {
-                    break;
-                }
+            DFAGraph h3 = DFAGraph.xor(h1, h2).minimize();
+
+            Graph.getImage(graphViz, g1.toDotString(), "g1");
+            Graph.getImage(graphViz, g2.toDotString(), "g2");
+
+            Graph.getImage(graphViz, h1.toDotString(), "h1");
+            Graph.getImage(graphViz, h2.toDotString(), "h2");
+            Graph.getImage(graphViz, h3.toDotString(), "h3");
+
+            Optional<String> discrepancy = DFAGraph.getFirstDiscrepancyMin(h1, h2);
+            if (discrepancy.isEmpty()) {
+                System.out.printf("Patterns %s and %s are equivalent.%n", pattern1, pattern2);
+            } else {
+                System.out.printf("Patterns %s and %s are not equivalent:%n", pattern1, pattern2);
+                System.out.printf("|- Test String   : %s%n", discrepancy.get());
+                System.out.printf("|- First pattern : %s%n", h1.acceptsString(discrepancy.get()) ? "accepts" : "rejects");
+                System.out.printf("|- Second pattern: %s%n", h2.acceptsString(discrepancy.get()) ? "accepts" : "rejects");
+                System.out.println();
             }
-            DFANode negDFANode = hn.getRootNode();
-            for (char ch : testString.toCharArray()) {
-                negDFANode = hn.moveFromNode(negDFANode, ch);
-                if (negDFANode == null) {
-                    break;
-                }
-            }
-            Graph.getImage(graphViz, g.toDotString_colorNFA(dfaNode), "nfa");
-            Graph.getImage(graphViz, h.toDotString_colorDFA(dfaNode), "dfa");
-            Graph.getImage(graphViz, i.toDotString_colorMinDFA(dfaNode), "min_dfa");
-            Graph.getImage(graphViz, hn.toDotString_colorDFA(negDFANode), "dfa_n");
-            Graph.getImage(graphViz, in.toDotString_colorMinDFA(negDFANode), "min_dfa_n");
         } catch (ParserException | IOException e) {
             e.printStackTrace();
         }

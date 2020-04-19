@@ -108,10 +108,47 @@ public class DFAGraph extends Graph<DFANode> {
         return sb.toString();
     }
 
+    public boolean acceptsString(String s) {
+        for (char ch : s.toCharArray()) {
+            if (ch == Alphabet.Empty || !alphabet.alphabetSet.contains(ch)) {
+                return false;
+            }
+        }
+        DFANode currNode = getRootNode();
+        for (char ch : s.toCharArray()) {
+            currNode = moveFromNode(currNode, ch);
+            if (currNode == null) {
+                return false;
+            }
+        }
+        return currNode.isAccept();
+    }
+
+    public DFANode moveFromNode(DFANode curr, char ch) {
+        return curr.getEdge(ch);
+    }
+
     public DFAGraph minimize() {
+        return minimize(this);
+    }
+
+    public DFAGraph negate() {
+        return not(this);
+    }
+
+    public DFAGraph xor(DFAGraph other) {
+        return xor(this, other);
+    }
+
+    public NFAGraph toNFA() {
+        return toNFA(this);
+    }
+
+    public static DFAGraph minimize(DFAGraph dfaGraph) {
+        Alphabet alphabet = dfaGraph.getAlphabet();
         Map<Node, Integer> prevPartitions;
         Map<Node, Integer> currPartitions = new HashMap<>();
-        for (Node node : nodeList) {
+        for (Node node : dfaGraph.getNodeList()) {
             if (node.isAccept()) {
                 currPartitions.put(node, 0);
             } else {
@@ -126,7 +163,7 @@ public class DFAGraph extends Graph<DFANode> {
             currPartitions = new HashMap<>(prevPartitions);
             for (int p = 0; p < prevN; p++) {
                 List<DFANode> partitionNodeList = new ArrayList<>();
-                for (DFANode node : nodeList) {
+                for (DFANode node : dfaGraph.getNodeList()) {
                     if (prevPartitions.get(node) == p) {
                         partitionNodeList.add(node);
                     }
@@ -143,8 +180,8 @@ public class DFAGraph extends Graph<DFANode> {
                         // b has already been moved to the new partition
                         if (currPartitions.get(b) != p) continue;
                         for (int k = 0; k < alphabet.n; k++) {
-                            int aPartNum = a.getEdges()[k] == null ? -1 : prevPartitions.get(a.getEdges()[k]);
-                            int bPartNum = b.getEdges()[k] == null ? -1 : prevPartitions.get(b.getEdges()[k]);
+                            int aPartNum = a.getEdge(k) == null ? -1 : prevPartitions.get(a.getEdge(k));
+                            int bPartNum = b.getEdge(k) == null ? -1 : prevPartitions.get(b.getEdge(k));
                             if (aPartNum != bPartNum) {
                                 currPartitions.put(b, currN);
                                 modified = true;
@@ -165,13 +202,13 @@ public class DFAGraph extends Graph<DFANode> {
             Set<Node> nodeSet = new HashSet<>();
             boolean isAccept = false;
             boolean isRoot = false;
-            for (Node node : nodeList) {
+            for (Node node : dfaGraph.getNodeList()) {
                 if (currPartitions.get(node) == p) {
                     nodeSet.add(node);
                     if (node.isAccept()) {
                         isAccept = true;
                     }
-                    if (node == rootNode) {
+                    if (node == dfaGraph.getRootNode()) {
                         isRoot = true;
                     }
                 }
@@ -188,7 +225,7 @@ public class DFAGraph extends Graph<DFANode> {
             }
         }
 
-        for (Edge<DFANode> edge : edgeList) {
+        for (Edge<DFANode> edge : dfaGraph.getEdgeList()) {
             DFANode newFromNode = newNodes.get(currPartitions.get(edge.fromNode));
             DFANode newToNode = newNodes.get(currPartitions.get(edge.toNode));
             graph.addEdge(newFromNode, newToNode, edge.label);
@@ -197,7 +234,9 @@ public class DFAGraph extends Graph<DFANode> {
         return graph;
     }
 
-    public DFAGraph negate() {
+    public static DFAGraph not(DFAGraph dfaGraph) {
+        Alphabet alphabet = dfaGraph.getAlphabet();
+        DFANode rootNode = dfaGraph.getRootNode();
         DFAGraph negDFA = new DFAGraph(alphabet);
         DFANode negRoot = negDFA.addNode();
         negRoot.setAccept(!rootNode.isAccept());
@@ -212,7 +251,7 @@ public class DFAGraph extends Graph<DFANode> {
             Set<Character> nullEdges = new HashSet<>();
 //          Init i = 1 to ignore Alphabet.Empty
             for (int i = 1; i < alphabet.n; i++) {
-                DFANode node = curr.getEdges()[i];
+                DFANode node = curr.getEdge(i);
                 if (node == null) {
                     nullEdges.add(alphabet.alphabetList.get(i));
                 } else {
@@ -242,7 +281,118 @@ public class DFAGraph extends Graph<DFANode> {
         return negDFA;
     }
 
-    public DFANode moveFromNode(DFANode curr, char ch) {
-        return curr.getEdges()[alphabet.invertMap.get(ch)];
+    public static DFAGraph xor(DFAGraph g1, DFAGraph g2) {
+        assert g1.alphabet == g2.alphabet;
+        DFAGraph g1n = g1.negate();
+        DFAGraph g2n = g2.negate();
+        DFAGraph alpha = NFAGraph.or(g1.toNFA(), g2n.toNFA()).toDFA().negate();
+        DFAGraph beta = NFAGraph.or(g1n.toNFA(), g2.toNFA()).toDFA().negate();
+        return NFAGraph.or(alpha.toNFA(), beta.toNFA()).toDFA();
+    }
+
+    public static NFAGraph toNFA(DFAGraph g) {
+        return new NFAGraph(g);
+    }
+
+    // TODO Maybe add stream of discrepancies
+
+    public static Optional<String> getFirstDiscrepancyMin(DFAGraph g1, DFAGraph g2) {
+        DFAGraph result = xor(g1, g2).minimize();
+        Alphabet alphabet = result.getAlphabet();
+        HashMap<DFANode, String> stringMap = new HashMap<>();
+        Queue<DFANode> nodeQueue = new ArrayDeque<>();
+        DFANode rootNode = result.getRootNode();
+        stringMap.put(rootNode, "");
+        nodeQueue.add(rootNode);
+        while (!nodeQueue.isEmpty()) {
+            DFANode currNode = nodeQueue.poll();
+            String currS = stringMap.get(currNode);
+            if (currNode.isAccept()) {
+                return Optional.of(currS);
+            }
+            // Init i = 1 to ignore Alphabet.empty
+            for (int i = 1; i < alphabet.n; i++) {
+                char ch = alphabet.alphabetList.get(i);
+                DFANode nextNode = result.moveFromNode(currNode, ch);
+                if (nextNode != null && !stringMap.containsKey(nextNode)) {
+                    stringMap.put(nextNode, currS + ch);
+                    nodeQueue.add(nextNode);
+                }
+            }
+        }
+        return Optional.empty();
+    }
+
+    public static boolean isEquivalentMin(DFAGraph g1, DFAGraph g2) {
+        assert g1.alphabet == g2.alphabet;
+        Alphabet alphabet = g1.alphabet;
+        if (g1 == g2) {
+            return true;
+        } else {
+            if ((g1.nodeList.size() != g2.nodeList.size()) || (g1.edgeList.size() != g2.edgeList.size())) {
+                return false;
+            }
+            HashMap<DFANode, DFANode> nodeMap = new HashMap<>();
+            HashMap<DFANode, DFANode> invNodeMap = new HashMap<>();
+            HashMap<DFANode, String> stringMap = new HashMap<>();
+            DFANode root1 = g1.rootNode;
+            DFANode root2 = g2.rootNode;
+            nodeMap.put(root1, root2);
+            nodeMap.put(root2, root1);
+            stringMap.put(root1, "");
+            Queue<DFANode> nodeQueue = new ArrayDeque<>();
+            nodeQueue.add(root1);
+            while (!nodeQueue.isEmpty()) {
+                DFANode curr1 = nodeQueue.poll();
+                DFANode curr2 = nodeMap.get(curr1);
+                String s1 = stringMap.get(curr1);
+
+                // Init i = 1 to ignore Alphabet.empty
+                for (int i = 1; i < alphabet.n; i++) {
+                    char ch = alphabet.alphabetList.get(i);
+                    DFANode next1 = g1.moveFromNode(curr1, ch);
+                    DFANode next2 = g2.moveFromNode(curr2, ch);
+                    String nextS = s1 + ch;
+
+                    if (next1 != null || next2 != null) {
+                        if (next1 == null || next2 == null) {
+                            // One null, other non-null
+                            return false;
+                        }
+                        if (next1.isAccept() != next2.isAccept()) {
+                            // One accept, other reject
+                            return false;
+                        }
+                        if (nodeMap.containsKey(next1)) {
+                            // Both seen but inconsistent
+                            if (nodeMap.get(next1) != next2 || invNodeMap.get(next2) != next1) {
+                                return false;
+                            }
+                            // Both seen and consistent -> ok
+                        } else {
+                            if (invNodeMap.containsKey(next2)) {
+                                // next1 unseen, next2 seen
+                                return false;
+                            } else {
+                                // both unseen -> add to map
+                                nodeMap.put(next1, next2);
+                                invNodeMap.put(next2, next1);
+                                stringMap.put(next1, nextS);
+                                nodeQueue.add(next1);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return true;
+    }
+
+    public static Optional<String> getFirstDiscrepancy(DFAGraph g1, DFAGraph g2) {
+        return getFirstDiscrepancyMin(minimize(g1), minimize(g2));
+    }
+
+    public static boolean isEquivalent(DFAGraph g1, DFAGraph g2) {
+        return isEquivalentMin(minimize(g1), minimize(g2));
     }
 }

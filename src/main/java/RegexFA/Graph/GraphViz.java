@@ -92,7 +92,7 @@ public class GraphViz implements Closeable {
             NFAGraph g = toGraph(pattern, Alphabet.Binary);
             DFAGraph h = g.toDFA();
             DFAGraph i = h.minimize();
-            Node dfaNode = h.getRootNode().getEdges()[Alphabet.Binary.invertMap.get('1')];
+            Node dfaNode = h.moveFromNode(h.getRootNode(), '1');
             GraphViz graphViz = new GraphViz(Paths.get("temp"));
             graphViz.toImage(g.toDotString_colorNFA(dfaNode), "nfa");
             graphViz.toImage(h.toDotString_colorDFA(dfaNode), "dfa");
