@@ -23,6 +23,7 @@ public class MainModel extends Model implements Closeable {
     private String testStringErrorMsg;
     private int testStringPos;
     private final ArrayList<Node> testStringDFANodes;
+    private final ArrayList<Boolean> testStringAcceptance;
     private NFAGraph nfa;
     private DFAGraph dfa;
     private DFAGraph min_dfa;
@@ -33,6 +34,7 @@ public class MainModel extends Model implements Closeable {
         testString = "";
         testStringPos = -1;
         testStringDFANodes = new ArrayList<>();
+        testStringAcceptance = new ArrayList<>();
         graphViz = new GraphViz();
     }
 
@@ -61,23 +63,27 @@ public class MainModel extends Model implements Closeable {
         testStringErrorMsg = "";
     }
 
-    private synchronized void generateColorNodeList() {
+    private synchronized void generateTestStringLists() {
         if (regexSuccess && testStringSuccess) {
             testStringDFANodes.clear();
+            testStringAcceptance.clear();
             DFANode curr = dfa.getRootNode();
             int i = 0;
             if (curr != null) {
                 testStringDFANodes.add(curr);
+                testStringAcceptance.add(curr.isAccept());
             }
             while (curr != null && i < testString.length()) {
                 curr = dfa.moveFromNode(curr, testString.charAt(i));
                 if (curr != null) {
                     testStringDFANodes.add(curr);
+                    testStringAcceptance.add(curr.isAccept());
                 }
                 i++;
             }
         } else {
             testStringDFANodes.clear();
+            testStringAcceptance.clear();
         }
     }
 
@@ -88,11 +94,11 @@ public class MainModel extends Model implements Closeable {
         }
         switch (graphChoice) {
             case DFA:
-                return dfa.toDotString_colorDFA(dfaNode);
+                return dfa.toDotString_colorDFA(dfaNode, true);
             case NFA:
-                return nfa.toDotString_colorNFA(dfaNode);
+                return nfa.toDotString_colorNFA(dfaNode, true);
             case MinDFA:
-                return min_dfa.toDotString_colorMinDFA(dfaNode);
+                return min_dfa.toDotString_colorMinDFA(dfaNode, true);
             default:
                 throw new IllegalStateException();
         }
@@ -100,6 +106,16 @@ public class MainModel extends Model implements Closeable {
 
     public synchronized Path getImage(GraphViewModel.GraphChoice graphChoice, String imgName) {
         return Graph.getImage(graphViz, getDotString(graphChoice), imgName);
+    }
+
+    public synchronized boolean getTestStringAcceptance(int i) {
+        if (i < 0 || i > testString.length()) {
+            throw new IllegalArgumentException();
+        }
+        if (i + 1 < testStringAcceptance.size()) {
+            return testStringAcceptance.get(i + 1);
+        }
+        return false;
     }
 
     public synchronized boolean isRegexSuccess() {
@@ -126,7 +142,7 @@ public class MainModel extends Model implements Closeable {
     public synchronized void setTestString(String testString) {
         this.testString = testString;
         validateTestString();
-        generateColorNodeList();
+        generateTestStringLists();
     }
 
     public synchronized String getRegexErrMsg() {

@@ -175,6 +175,7 @@ public class GraphViewController extends Controller<GraphViewModel> {
         ImageView target = imageViewHashMap.get(msg.graphChoice);
         if (msg.imagePath != null) {
             target.setImage(new Image(msg.imagePath.toUri().toString()));
+            updateImageZoom(msg.graphChoice);
         } else {
             target.setImage(null);
         }
@@ -205,6 +206,14 @@ public class GraphViewController extends Controller<GraphViewModel> {
         gridPane_images.getColumnConstraints().get(0).setPercentWidth(getColumnWidth(GraphViewModel.GraphChoice.NFA));
         gridPane_images.getColumnConstraints().get(1).setPercentWidth(getColumnWidth(GraphViewModel.GraphChoice.DFA));
         gridPane_images.getColumnConstraints().get(2).setPercentWidth(getColumnWidth(GraphViewModel.GraphChoice.MinDFA));
+    }
+
+    private void updateImageZoom(GraphViewModel.GraphChoice graphChoice) {
+        ImageView imageView = imageViewHashMap.get(graphChoice);
+        Image image = imageView.getImage();
+        if (image != null) {
+            imageView.setFitHeight(image.getHeight() * model.getZoom(graphChoice));
+        }
     }
 
     private void updateLabels() {
@@ -296,6 +305,16 @@ public class GraphViewController extends Controller<GraphViewModel> {
         slider_nfa.setLabelFormatter(labelConverter);
         slider_dfa.setLabelFormatter(labelConverter);
         slider_min_dfa.setLabelFormatter(labelConverter);
+
+        for (GraphViewModel.GraphChoice graphChoice : GraphViewModel.GraphChoice.values()) {
+            sliderHashMap.get(graphChoice).valueProperty().addListener(
+                    (observable, oldValue, newValue) -> {
+                        model.setZoom(graphChoice, Math.pow(2, newValue.doubleValue()));
+                        updateImageZoom(graphChoice);
+                    }
+            );
+        }
+
         updateLabels();
     }
 }

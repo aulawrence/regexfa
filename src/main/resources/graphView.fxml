@@ -20,36 +20,36 @@
                 <ColumnConstraints hgrow="NEVER" percentWidth="33.3" />
             </columnConstraints>
             <rowConstraints>
-                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="NEVER" />
-                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="ALWAYS" />
-                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="NEVER" />
+                <RowConstraints minHeight="20.0" prefHeight="20.0" vgrow="NEVER" />
+                <RowConstraints minHeight="100.0" prefHeight="100.0" vgrow="ALWAYS" />
+                <RowConstraints minHeight="45.0" prefHeight="45.0" vgrow="NEVER" />
             </rowConstraints>
             <children>
                 <Label fx:id="label_nfa" alignment="CENTER" maxWidth="Infinity" onMouseClicked="#onClick_NFA" text="NFA" />
                 <Label fx:id="label_dfa" alignment="CENTER" maxWidth="Infinity" onMouseClicked="#onClick_DFA" text="DFA" GridPane.columnIndex="1" />
                 <Label fx:id="label_min_dfa" alignment="CENTER" maxWidth="Infinity" onMouseClicked="#onClick_MinDFA" text="Min-DFA" GridPane.columnIndex="2" />
-                <ScrollPane minHeight="0.0" minWidth="0.0" onMouseClicked="#onClick_NFA" prefHeight="160.0" prefWidth="100.0" GridPane.columnIndex="0" GridPane.rowIndex="1">
+                <ScrollPane minHeight="0.0" minWidth="0.0" onMouseClicked="#onClick_NFA" pannable="true" prefHeight="160.0" prefWidth="100.0" GridPane.columnIndex="0" GridPane.rowIndex="1">
                     <ImageView fx:id="imageView_nfa" preserveRatio="true" />
                 </ScrollPane>
-                <ScrollPane minHeight="0.0" minWidth="0.0" onMouseClicked="#onClick_DFA" prefHeight="160.0" prefWidth="100.0" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                <ScrollPane minHeight="0.0" minWidth="0.0" onMouseClicked="#onClick_DFA" pannable="true" prefHeight="160.0" prefWidth="100.0" GridPane.columnIndex="1" GridPane.rowIndex="1">
                     <ImageView fx:id="imageView_dfa" preserveRatio="true" />
                 </ScrollPane>
-                <ScrollPane minHeight="0.0" minWidth="0.0" onMouseClicked="#onClick_MinDFA" prefHeight="160.0" prefWidth="100.0" GridPane.columnIndex="2" GridPane.rowIndex="1">
+                <ScrollPane minHeight="0.0" minWidth="0.0" onMouseClicked="#onClick_MinDFA" pannable="true" prefHeight="160.0" prefWidth="100.0" GridPane.columnIndex="2" GridPane.rowIndex="1">
                     <ImageView fx:id="imageView_min_dfa" preserveRatio="true" />
                 </ScrollPane>
-                <Slider fx:id="slider_nfa" blockIncrement="0.25" majorTickUnit="0.5" max="2.0" min="-2.0" minorTickCount="1" showTickLabels="true" showTickMarks="true" GridPane.rowIndex="2">
+                <Slider fx:id="slider_nfa" blockIncrement="0.25" layoutY="1.0" majorTickUnit="1.0" max="2.0" min="-2.0" minorTickCount="1" showTickLabels="true" showTickMarks="true" GridPane.rowIndex="2" GridPane.valignment="CENTER">
                     <padding>
-                        <Insets left="12.0" right="12.0" />
+                        <Insets left="18.0" right="18.0" />
                     </padding>
                 </Slider>
-                <Slider fx:id="slider_dfa" blockIncrement="0.25" majorTickUnit="0.5" max="2.0" min="-2.0" minorTickCount="1" showTickLabels="true" showTickMarks="true" GridPane.columnIndex="1" GridPane.rowIndex="2">
+                <Slider fx:id="slider_dfa" blockIncrement="0.25" majorTickUnit="1.0" max="2.0" min="-2.0" minorTickCount="1" showTickLabels="true" showTickMarks="true" GridPane.columnIndex="1" GridPane.rowIndex="2" GridPane.valignment="CENTER">
                     <padding>
-                        <Insets left="12.0" right="12.0" />
+                        <Insets left="18.0" right="18.0" />
                     </padding>
                 </Slider>
-                <Slider fx:id="slider_min_dfa" blockIncrement="0.25" majorTickUnit="0.5" max="2.0" min="-2.0" minorTickCount="1" showTickLabels="true" showTickMarks="true" GridPane.columnIndex="2" GridPane.rowIndex="2">
+                <Slider fx:id="slider_min_dfa" blockIncrement="0.25" majorTickUnit="1.0" max="2.0" min="-2.0" minorTickCount="1" showTickLabels="true" showTickMarks="true" GridPane.columnIndex="2" GridPane.rowIndex="2" GridPane.valignment="CENTER">
                     <padding>
-                        <Insets left="12.0" right="12.0" />
+                        <Insets left="18.0" right="18.0" />
                     </padding>
                 </Slider>
             </children>

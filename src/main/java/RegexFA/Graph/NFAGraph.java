@@ -75,16 +75,23 @@ public class NFAGraph extends Graph<Node> {
     }
 
     public String toDotString() {
-        return toDotString((node) -> false);
+        return toDotString((node) -> false, false);
     }
 
-    public String toDotString_colorNFA(Node dfaNodes) {
-        return toDotString((node) -> dfaNodes != null && dfaNodes.getNodeSet() != null && dfaNodes.getNodeSet().contains(node));
+    public String toDotString(boolean bgTransparent) {
+        return toDotString((node) -> false, bgTransparent);
     }
 
-    public String toDotString(Function<Node, Boolean> colorPredicate) {
+    public String toDotString_colorNFA(Node dfaNodes, boolean bgTransparent) {
+        return toDotString((node) -> dfaNodes != null && dfaNodes.getNodeSet() != null && dfaNodes.getNodeSet().contains(node), bgTransparent);
+    }
+
+    public String toDotString(Function<Node, Boolean> colorPredicate, boolean bgTransparent) {
         StringBuilder sb = new StringBuilder();
         sb.append("digraph {\n");
+        if (bgTransparent) {
+            sb.append("  bgcolor=transparent;\n");
+        }
         sb.append("\n");
         for (Node node : nodeList) {
             sb.append(String.format("  %s [width=1 height=1", node.getId()));
@@ -103,7 +110,11 @@ public class NFAGraph extends Graph<Node> {
                 sb.append("\"");
             }
             if (colorPredicate.apply(node)) {
-                sb.append(" color=red");
+                if (node.isAccept()) {
+                    sb.append(" color=green3");
+                } else {
+                    sb.append(" color=red3");
+                }
             }
             if (node.isAccept()) {
                 sb.append(" peripheries=2");

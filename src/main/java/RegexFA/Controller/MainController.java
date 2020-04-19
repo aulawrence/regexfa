@@ -275,13 +275,16 @@ public class MainController extends Controller<MainModel> {
     private void updatePos() {
         int pos = model.getTestStringPos();
         for (int i = 0; i < testStringArrayList.size(); i++) {
-            if (i < pos) {
-                testStringArrayList.get(i).styleProperty().setValue("-fx-underline:true");
-            } else if (i == pos) {
-                testStringArrayList.get(i).styleProperty().setValue("-fx-font-weight: bold; -fx-underline:true");
-            } else {
-                testStringArrayList.get(i).styleProperty().setValue("");
+            StringBuilder sb = new StringBuilder();
+            if (model.getTestStringAcceptance(i)) {
+                sb.append("-fx-fill: darkgreen; ");
             }
+            if (i < pos) {
+                sb.append("-fx-underline:true; ");
+            } else if (i == pos) {
+                sb.append("-fx-font-weight: bold; -fx-underline:true; ");
+            }
+            testStringArrayList.get(i).styleProperty().setValue(sb.toString());
         }
         updateDotString();
         updateImages();

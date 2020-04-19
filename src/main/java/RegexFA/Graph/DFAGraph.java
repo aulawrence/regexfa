@@ -52,20 +52,27 @@ public class DFAGraph extends Graph<DFANode> {
     }
 
     public String toDotString() {
-        return toDotString((node) -> false);
+        return toDotString(false);
     }
 
-    public String toDotString_colorDFA(Node dfaNode) {
-        return toDotString((node) -> dfaNode != null && node == dfaNode);
+    public String toDotString(boolean bgTransparent) {
+        return toDotString((node) -> false, bgTransparent);
     }
 
-    public String toDotString_colorMinDFA(Node dfaNode) {
-        return toDotString((node) -> dfaNode != null && node.getNodeSet().contains(dfaNode));
+    public String toDotString_colorDFA(Node dfaNode, boolean bgTransparent) {
+        return toDotString((node) -> dfaNode != null && node == dfaNode, bgTransparent);
     }
 
-    public String toDotString(Function<DFANode, Boolean> colorPredicate) {
+    public String toDotString_colorMinDFA(Node dfaNode, boolean bgTransparent) {
+        return toDotString((node) -> dfaNode != null && node.getNodeSet().contains(dfaNode), bgTransparent);
+    }
+
+    public String toDotString(Function<DFANode, Boolean> colorPredicate, boolean bgTransparent) {
         StringBuilder sb = new StringBuilder();
         sb.append("digraph {\n");
+        if (bgTransparent) {
+            sb.append("  bgcolor=transparent;\n");
+        }
         sb.append("\n");
         for (DFANode node : nodeList) {
             sb.append(String.format("  %s [width=1 height=1", node.getId()));
@@ -84,7 +91,11 @@ public class DFAGraph extends Graph<DFANode> {
                 sb.append("\"");
             }
             if (colorPredicate.apply(node)) {
-                sb.append(" color=red");
+                if (node.isAccept()) {
+                    sb.append(" color=green3");
+                } else {
+                    sb.append(" color=red3");
+                }
             }
             if (node.isAccept()) {
                 sb.append(" peripheries=2");
