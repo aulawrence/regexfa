@@ -1,22 +1,14 @@
 package RegexFA.Graph;
 
-
-import RegexFA.Alphabet;
-import RegexFA.Parser.ParserException;
-
 import java.io.Closeable;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
-
-import static RegexFA.Parser.RegexParser.toGraph;
-import static RegexFA.Parser.RegexParser.verify;
 
 public class GraphViz implements Closeable {
     private final Path dir;
@@ -82,24 +74,6 @@ public class GraphViz implements Closeable {
             } catch (IOException e) {
                 System.err.printf("Cannot delete directory: %s.%n", e.getMessage());
             }
-        }
-    }
-
-    public static void main(String[] args) {
-        String pattern = "(0|1(01*0)*1)*";
-        try {
-            verify(pattern, Alphabet.Binary);
-            NFAGraph g = toGraph(pattern, Alphabet.Binary);
-            DFAGraph h = g.toDFA();
-            DFAGraph i = h.minimize();
-            Node dfaNode = h.moveFromNode(h.getRootNode(), '1');
-            GraphViz graphViz = new GraphViz(Paths.get("temp"));
-            graphViz.toImage(g.toDotString_colorNFA(dfaNode), "nfa");
-            graphViz.toImage(h.toDotString_colorDFA(dfaNode), "dfa");
-            graphViz.toImage(i.toDotString_colorMinDFA(dfaNode), "mindfa");
-            graphViz.close();
-        } catch (ParserException | IOException | InterruptedException e) {
-            e.printStackTrace();
         }
     }
 }
