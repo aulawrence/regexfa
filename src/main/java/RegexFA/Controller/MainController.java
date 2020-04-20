@@ -1,7 +1,6 @@
 package RegexFA.Controller;
 
 import RegexFA.Alphabet;
-import RegexFA.Model.GraphViewModel;
 import RegexFA.Model.MainModel;
 import io.reactivex.rxjava3.annotations.NonNull;
 import io.reactivex.rxjava3.core.Observer;
@@ -9,6 +8,7 @@ import io.reactivex.rxjava3.disposables.Disposable;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.TextField;
@@ -57,11 +57,7 @@ public class MainController extends Controller<MainModel> {
     private boolean testStringEditing = true;
 
     public MainController() throws IOException {
-        this(new MainModel());
-    }
-
-    protected MainController(MainModel model) {
-        super(model);
+        super(new MainModel());
         testStringArrayList = new ArrayList<>();
         executor = Executors.newFixedThreadPool(3);
         imagePath = new HashMap<>();
@@ -227,12 +223,12 @@ public class MainController extends Controller<MainModel> {
         }
     }
 
-    private void handle(GraphViewController.EmitMessage.RequestImageSubscription msg) {
+    private void handle(GraphViewController.Message.RequestImageSubscription msg) {
         imageSubscription.put(msg.graphChoice, msg.subscribe);
         updateImages(true, msg.graphChoice);
     }
 
-    private void handle(GraphViewController.EmitMessage.RequestDotString msg) {
+    private void handle(GraphViewController.Message.RequestDotString msg) {
         dotStringChoice = msg.graphChoice;
         updateDotString();
     }
@@ -293,9 +289,9 @@ public class MainController extends Controller<MainModel> {
 
     private void updateDotString() {
         if (model.isRegexSuccess()) {
-            graphViewController.getObserver().onNext(new GraphViewController.RecvMessage.ReceiveDotString(model.getDotString(dotStringChoice)));
+            graphViewController.getObserver().onNext(new GraphViewController.Message.ReceiveDotString(model.getDotString(dotStringChoice)));
         } else {
-            graphViewController.getObserver().onNext(new GraphViewController.RecvMessage.ReceiveDotString(""));
+            graphViewController.getObserver().onNext(new GraphViewController.Message.ReceiveDotString(""));
         }
     }
 
@@ -312,20 +308,20 @@ public class MainController extends Controller<MainModel> {
                         () -> {
                             imagePath.put(graphChoice, model.getImage(graphChoice, graphChoice.toString()));
                             Platform.runLater(
-                                    () -> graphViewController.getObserver().onNext(new GraphViewController.RecvMessage.ReceiveImage(graphChoice, imagePath.get(graphChoice)))
+                                    () -> graphViewController.getObserver().onNext(new GraphViewController.Message.ReceiveImage(graphChoice, imagePath.get(graphChoice)))
                             );
                         }
                 );
             } else if (!nullOnly && !imageSubscription.get(graphChoice)) {
                 imagePath.put(graphChoice, null);
                 Platform.runLater(
-                        () -> graphViewController.getObserver().onNext(new GraphViewController.RecvMessage.ReceiveImage(graphChoice, null))
+                        () -> graphViewController.getObserver().onNext(new GraphViewController.Message.ReceiveImage(graphChoice, null))
                 );
             }
         } else {
             imagePath.put(graphChoice, null);
             Platform.runLater(
-                    () -> graphViewController.getObserver().onNext(new GraphViewController.RecvMessage.ReceiveImage(graphChoice, null))
+                    () -> graphViewController.getObserver().onNext(new GraphViewController.Message.ReceiveImage(graphChoice, null))
             );
         }
     }
@@ -352,20 +348,21 @@ public class MainController extends Controller<MainModel> {
 
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/graphView.fxml"));
         try {
-            graphViewController = new GraphViewController(new GraphViewModel(), executor);
-            graphViewController.getObservable().subscribe(new Observer<GraphViewController.EmitMessage.Base>() {
+            Node node = loader.load();
+            graphViewController = loader.getController();
+            graphViewController.getObservable().subscribe(new Observer<GraphViewController.Message.EmitBase>() {
                 @Override
                 public void onSubscribe(@NonNull Disposable d) {
 
                 }
 
                 @Override
-                public void onNext(GraphViewController.EmitMessage.@NonNull Base base) {
-                    if (base instanceof GraphViewController.EmitMessage.RequestDotString) {
-                        GraphViewController.EmitMessage.RequestDotString msg = (GraphViewController.EmitMessage.RequestDotString) base;
+                public void onNext(GraphViewController.Message.EmitBase emitBase) {
+                    if (emitBase instanceof GraphViewController.Message.RequestDotString) {
+                        GraphViewController.Message.RequestDotString msg = (GraphViewController.Message.RequestDotString) emitBase;
                         handle(msg);
-                    } else if (base instanceof GraphViewController.EmitMessage.RequestImageSubscription) {
-                        GraphViewController.EmitMessage.RequestImageSubscription msg = (GraphViewController.EmitMessage.RequestImageSubscription) base;
+                    } else if (emitBase instanceof GraphViewController.Message.RequestImageSubscription) {
+                        GraphViewController.Message.RequestImageSubscription msg = (GraphViewController.Message.RequestImageSubscription) emitBase;
                         handle(msg);
                     }
                 }
@@ -380,8 +377,7 @@ public class MainController extends Controller<MainModel> {
 
                 }
             });
-            loader.setController(graphViewController);
-            anchorPane_graphView.getChildren().add(loader.load());
+            anchorPane_graphView.getChildren().add(node);
         } catch (IOException e) {
             e.printStackTrace();
         }

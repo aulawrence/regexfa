@@ -6,94 +6,45 @@ import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.core.Observer;
 import io.reactivex.rxjava3.disposables.Disposable;
 import io.reactivex.rxjava3.subjects.PublishSubject;
-import javafx.application.Platform;
 import javafx.fxml.FXML;
-import javafx.scene.control.Label;
-import javafx.scene.control.Slider;
+import javafx.scene.Node;
 import javafx.scene.control.TextArea;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.GridPane;
-import javafx.util.StringConverter;
 
 import java.net.URL;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.ResourceBundle;
-import java.util.concurrent.ExecutorService;
 
 public class GraphViewController extends Controller<GraphViewModel> {
-    public static class EmitMessage {
-        public static abstract class Base {
-        }
+    @FXML
+    private TextArea textArea;
+    @FXML
+    private GridPane gridPane;
+    @FXML
+    private Node graphZoomViewNFA;
+    @FXML
+    private Node graphZoomViewDFA;
+    @FXML
+    private Node graphZoomViewMinDFA;
+    @FXML
+    private GraphZoomViewController graphZoomViewNFAController;
+    @FXML
+    private GraphZoomViewController graphZoomViewDFAController;
+    @FXML
+    private GraphZoomViewController graphZoomViewMinDFAController;
 
-        public static class RequestDotString extends Base {
-            public final GraphViewModel.GraphChoice graphChoice;
+    private final PublishSubject<Message.EmitBase> observable;
+    private final Observer<Message.RecvBase> observer;
 
-            public RequestDotString(GraphViewModel.GraphChoice graphChoice) {
-                this.graphChoice = graphChoice;
-            }
-        }
+    private final PublishSubject<Message.ZoomViewRecv> zoomViewObservable;
+    private final Observer<Message.ZoomViewEmit> zoomViewObserver;
 
-        public static class RequestImageSubscription extends Base {
-            public final GraphViewModel.GraphChoice graphChoice;
-            public final boolean subscribe;
+    private final HashMap<GraphViewModel.GraphChoice, Node> graphZoomViewHashMap;
+    private final HashMap<GraphViewModel.GraphChoice, Integer> gridPaneColumnNumHashMap;
 
-            public RequestImageSubscription(GraphViewModel.GraphChoice graphChoice, boolean subscribe) {
-                this.graphChoice = graphChoice;
-                this.subscribe = subscribe;
-            }
-        }
-    }
-
-    public static class RecvMessage {
-        public static abstract class Base {
-        }
-
-        public static class ReceiveDotString extends Base {
-            public final String dotString;
-
-            public ReceiveDotString(String dotString) {
-                this.dotString = dotString;
-            }
-        }
-
-        public static class ReceiveImage extends Base {
-            public final GraphViewModel.GraphChoice graphChoice;
-            public final Path imagePath;
-
-            public ReceiveImage(GraphViewModel.GraphChoice graphChoice, Path imagePath) {
-                this.graphChoice = graphChoice;
-                this.imagePath = imagePath;
-            }
-        }
-    }
-
-
-    public GridPane gridPane_images;
-    public TextArea textArea_display;
-    public Label label_nfa;
-    public Label label_dfa;
-    public Label label_min_dfa;
-    public ImageView imageView_nfa;
-    public ImageView imageView_dfa;
-    public ImageView imageView_min_dfa;
-    public Slider slider_nfa;
-    public Slider slider_dfa;
-    public Slider slider_min_dfa;
-
-    private final ExecutorService executor;
-    private final PublishSubject<EmitMessage.Base> observable;
-    private final Observer<RecvMessage.Base> observer;
-
-    private final HashMap<GraphViewModel.GraphChoice, Label> labelHashMap;
-    private final HashMap<GraphViewModel.GraphChoice, ImageView> imageViewHashMap;
-    private final HashMap<GraphViewModel.GraphChoice, Slider> sliderHashMap;
-
-    protected GraphViewController(GraphViewModel model, ExecutorService executor) {
-        super(model);
-        this.executor = executor;
+    public GraphViewController() {
+        super(new GraphViewModel());
         observable = PublishSubject.create();
         observer = new Observer<>() {
             @Override
@@ -102,16 +53,8 @@ public class GraphViewController extends Controller<GraphViewModel> {
             }
 
             @Override
-            public void onNext(RecvMessage.@NonNull Base base) {
-                if (base instanceof RecvMessage.ReceiveDotString) {
-                    RecvMessage.ReceiveDotString msg = (RecvMessage.ReceiveDotString) base;
-                    handle(msg);
-                } else if (base instanceof RecvMessage.ReceiveImage) {
-                    RecvMessage.ReceiveImage msg = (RecvMessage.ReceiveImage) base;
-                    handle(msg);
-                } else {
-                    throw new IllegalStateException();
-                }
+            public void onNext(Message.RecvBase recvBase) {
+                handle(recvBase);
             }
 
             @Override
@@ -124,32 +67,97 @@ public class GraphViewController extends Controller<GraphViewModel> {
 
             }
         };
+        zoomViewObservable = PublishSubject.create();
+        zoomViewObserver = new Observer<>() {
+            @Override
+            public void onSubscribe(@NonNull Disposable d) {
 
-        labelHashMap = new HashMap<>();
-        imageViewHashMap = new HashMap<>();
-        sliderHashMap = new HashMap<>();
+            }
+
+            @Override
+            public void onNext(Message.@NonNull ZoomViewEmit zoomViewEmit) {
+                handle(zoomViewEmit);
+            }
+
+            @Override
+            public void onError(@NonNull Throwable e) {
+
+            }
+
+            @Override
+            public void onComplete() {
+
+            }
+        };
+        graphZoomViewHashMap = new HashMap<>();
+        gridPaneColumnNumHashMap = new HashMap<>();
     }
 
-    @FXML
-    private void onClick_NFA(MouseEvent mouseEvent) {
-        onClick(GraphViewModel.GraphChoice.NFA, GraphViewModel.GraphPaneChoice.NFA, mouseEvent.getClickCount());
+    @Override
+    public void initialize(URL location, ResourceBundle resources) {
+        graphZoomViewNFAController.getObservable().map(msg -> new Message.ZoomViewEmit(GraphViewModel.GraphChoice.NFA, msg)).subscribe(zoomViewObserver);
+        zoomViewObservable.filter(msg -> msg.graphChoice == GraphViewModel.GraphChoice.NFA).map(msg -> msg.msg).subscribe(graphZoomViewNFAController.getObserver());
+        graphZoomViewDFAController.getObservable().map(msg -> new Message.ZoomViewEmit(GraphViewModel.GraphChoice.DFA, msg)).subscribe(zoomViewObserver);
+        zoomViewObservable.filter(msg -> msg.graphChoice == GraphViewModel.GraphChoice.DFA).map(msg -> msg.msg).subscribe(graphZoomViewDFAController.getObserver());
+        graphZoomViewMinDFAController.getObservable().map(msg -> new Message.ZoomViewEmit(GraphViewModel.GraphChoice.MinDFA, msg)).subscribe(zoomViewObserver);
+        zoomViewObservable.filter(msg -> msg.graphChoice == GraphViewModel.GraphChoice.MinDFA).map(msg -> msg.msg).subscribe(graphZoomViewMinDFAController.getObserver());
+
+        zoomViewObservable.onNext(new Message.ZoomViewRecv(GraphViewModel.GraphChoice.NFA, new GraphZoomViewController.Message.RecvLabel("NFA")));
+        zoomViewObservable.onNext(new Message.ZoomViewRecv(GraphViewModel.GraphChoice.DFA, new GraphZoomViewController.Message.RecvLabel("DFA")));
+        zoomViewObservable.onNext(new Message.ZoomViewRecv(GraphViewModel.GraphChoice.MinDFA, new GraphZoomViewController.Message.RecvLabel("MinDFA")));
+
+        gridPaneColumnNumHashMap.put(GraphViewModel.GraphChoice.NFA, 0);
+        gridPaneColumnNumHashMap.put(GraphViewModel.GraphChoice.DFA, 1);
+        gridPaneColumnNumHashMap.put(GraphViewModel.GraphChoice.MinDFA, 2);
+
+        graphZoomViewHashMap.put(GraphViewModel.GraphChoice.NFA, graphZoomViewNFA);
+        graphZoomViewHashMap.put(GraphViewModel.GraphChoice.DFA, graphZoomViewDFA);
+        graphZoomViewHashMap.put(GraphViewModel.GraphChoice.MinDFA, graphZoomViewMinDFA);
+
+        updateLabels();
     }
 
-    @FXML
-    private void onClick_DFA(MouseEvent mouseEvent) {
-        onClick(GraphViewModel.GraphChoice.DFA, GraphViewModel.GraphPaneChoice.DFA, mouseEvent.getClickCount());
+    private void handle(Message.RecvBase recvBase) {
+        if (recvBase instanceof Message.ReceiveDotString) {
+            handle((Message.ReceiveDotString) recvBase);
+        } else if (recvBase instanceof Message.ReceiveImage) {
+            handle((Message.ReceiveImage) recvBase);
+        } else {
+            throw new IllegalStateException();
+        }
     }
 
-    @FXML
-    private void onClick_MinDFA(MouseEvent mouseEvent) {
-        onClick(GraphViewModel.GraphChoice.MinDFA, GraphViewModel.GraphPaneChoice.MinDFA, mouseEvent.getClickCount());
+    private void handle(Message.ReceiveImage msg) {
+        zoomViewObservable.onNext(new Message.ZoomViewRecv(msg.graphChoice, new GraphZoomViewController.Message.RecvImage(msg.imagePath)));
     }
 
-    private void onClick(GraphViewModel.GraphChoice graphChoice, GraphViewModel.GraphPaneChoice graphPaneChoice, int clicks) {
+    private void handle(Message.ReceiveDotString msg) {
+        textArea.setText(msg.dotString);
+    }
+
+    private void handle(Message.ZoomViewEmit msg) {
+        if (msg.msg instanceof GraphZoomViewController.Message.EmitClickImage) {
+            handle(msg.graphChoice, (GraphZoomViewController.Message.EmitClickImage) msg.msg);
+        } else if (msg.msg instanceof GraphZoomViewController.Message.EmitClickLabel) {
+            handle(msg.graphChoice, (GraphZoomViewController.Message.EmitClickLabel) msg.msg);
+        } else {
+            throw new IllegalArgumentException();
+        }
+    }
+
+    private void handle(GraphViewModel.GraphChoice graphChoice, GraphZoomViewController.Message.EmitClickImage msg) {
+        clickGraph(graphChoice, msg.clickCount);
+    }
+
+    private void handle(GraphViewModel.GraphChoice graphChoice, GraphZoomViewController.Message.EmitClickLabel msg) {
+        clickGraph(graphChoice, msg.clickCount);
+    }
+
+    private void clickGraph(GraphViewModel.GraphChoice graphChoice, int clicks) {
         modelSetSelection(graphChoice);
         if (clicks == 2) {
             if (model.getGraphPaneChoice() == GraphViewModel.GraphPaneChoice.ALL) {
-                model.setGraphPaneChoice(graphPaneChoice);
+                model.setGraphPaneChoice(GraphViewModel.GraphPaneChoice.fromGraphChoice(graphChoice));
             } else {
                 model.setGraphPaneChoice(GraphViewModel.GraphPaneChoice.ALL);
             }
@@ -158,86 +166,36 @@ public class GraphViewController extends Controller<GraphViewModel> {
     }
 
     private void modelSetSelection(GraphViewModel.GraphChoice graphChoice) {
-        executor.execute(
-                () -> {
-                    model.setDotStringChoice(graphChoice);
-                    updateTextArea();
-                    Platform.runLater(
-                            () -> {
-                                updateLabels();
-                            }
-                    );
-                }
-        );
+        model.setDotStringChoice(graphChoice);
+        updateTextArea();
+        updateLabels();
     }
 
-    private void handle(RecvMessage.ReceiveImage msg) {
-        ImageView target = imageViewHashMap.get(msg.graphChoice);
-        if (msg.imagePath != null) {
-            target.setImage(new Image(msg.imagePath.toUri().toString()));
-            updateImageZoom(msg.graphChoice);
-        } else {
-            target.setImage(null);
-        }
-    }
-
-    private void handle(RecvMessage.ReceiveDotString msg) {
-        textArea_display.setText(msg.dotString);
-    }
 
     private void updateTextArea() {
-        observable.onNext(new EmitMessage.RequestDotString(model.getDotStringChoice()));
+        observable.onNext(new Message.RequestDotString(model.getDotStringChoice()));
     }
 
     private void updateImageVisibility() {
         for (GraphViewModel.GraphChoice graphChoice : GraphViewModel.GraphChoice.values()) {
             if (getVisibility(graphChoice)) {
-                labelHashMap.get(graphChoice).setVisible(true);
-                imageViewHashMap.get(graphChoice).setVisible(true);
-                sliderHashMap.get(graphChoice).setVisible(true);
-                observable.onNext(new EmitMessage.RequestImageSubscription(graphChoice, true));
+                graphZoomViewHashMap.get(graphChoice).setVisible(true);
+                observable.onNext(new Message.RequestImageSubscription(graphChoice, true));
             } else {
-                labelHashMap.get(graphChoice).setVisible(false);
-                imageViewHashMap.get(graphChoice).setVisible(false);
-                sliderHashMap.get(graphChoice).setVisible(false);
-                observable.onNext(new EmitMessage.RequestImageSubscription(graphChoice, false));
+                graphZoomViewHashMap.get(graphChoice).setVisible(false);
+                observable.onNext(new Message.RequestImageSubscription(graphChoice, false));
             }
-        }
-        gridPane_images.getColumnConstraints().get(0).setPercentWidth(getColumnWidth(GraphViewModel.GraphChoice.NFA));
-        gridPane_images.getColumnConstraints().get(1).setPercentWidth(getColumnWidth(GraphViewModel.GraphChoice.DFA));
-        gridPane_images.getColumnConstraints().get(2).setPercentWidth(getColumnWidth(GraphViewModel.GraphChoice.MinDFA));
-    }
-
-    private void updateImageZoom(GraphViewModel.GraphChoice graphChoice) {
-        ImageView imageView = imageViewHashMap.get(graphChoice);
-        Image image = imageView.getImage();
-        if (image != null) {
-            imageView.setFitHeight(image.getHeight() * model.getZoom(graphChoice));
+            gridPane.getColumnConstraints().get(gridPaneColumnNumHashMap.get(graphChoice)).setPercentWidth(getColumnWidth(graphChoice));
         }
     }
 
     private void updateLabels() {
-        label_nfa.setUnderline(false);
-        label_nfa.setStyle("-fx-font-weight: normal;");
-        label_dfa.setUnderline(false);
-        label_dfa.setStyle("-fx-font-weight: normal;");
-        label_min_dfa.setUnderline(false);
-        label_min_dfa.setStyle("-fx-font-weight: normal;");
-        switch (model.getDotStringChoice()) {
-            case DFA:
-                label_dfa.setUnderline(true);
-                label_dfa.setStyle("-fx-font-weight: bold;");
-                break;
-            case NFA:
-                label_nfa.setUnderline(true);
-                label_nfa.setStyle("-fx-font-weight: bold;");
-                break;
-            case MinDFA:
-                label_min_dfa.setUnderline(true);
-                label_min_dfa.setStyle("-fx-font-weight: bold;");
-                break;
-            default:
-                throw new IllegalStateException();
+        for (GraphViewModel.GraphChoice graphChoice : GraphViewModel.GraphChoice.values()) {
+            if (graphChoice == model.getDotStringChoice()) {
+                zoomViewObservable.onNext(new Message.ZoomViewRecv(graphChoice, new GraphZoomViewController.Message.RecvLabelFormat("-fx-font-weight: bold;", true)));
+            } else {
+                zoomViewObservable.onNext(new Message.ZoomViewRecv(graphChoice, new GraphZoomViewController.Message.RecvLabelFormat("-fx-font-weight: normal;", false)));
+            }
         }
     }
 
@@ -269,52 +227,76 @@ public class GraphViewController extends Controller<GraphViewModel> {
         throw new IllegalStateException();
     }
 
-    public Observable<EmitMessage.Base> getObservable() {
+    public Observable<Message.EmitBase> getObservable() {
         return observable;
     }
 
-    public Observer<RecvMessage.Base> getObserver() {
+    public Observer<Message.RecvBase> getObserver() {
         return observer;
     }
 
-    @Override
-    public void initialize(URL location, ResourceBundle resources) {
-        labelHashMap.put(GraphViewModel.GraphChoice.NFA, label_nfa);
-        labelHashMap.put(GraphViewModel.GraphChoice.DFA, label_dfa);
-        labelHashMap.put(GraphViewModel.GraphChoice.MinDFA, label_min_dfa);
-
-        imageViewHashMap.put(GraphViewModel.GraphChoice.NFA, imageView_nfa);
-        imageViewHashMap.put(GraphViewModel.GraphChoice.DFA, imageView_dfa);
-        imageViewHashMap.put(GraphViewModel.GraphChoice.MinDFA, imageView_min_dfa);
-
-        sliderHashMap.put(GraphViewModel.GraphChoice.NFA, slider_nfa);
-        sliderHashMap.put(GraphViewModel.GraphChoice.DFA, slider_dfa);
-        sliderHashMap.put(GraphViewModel.GraphChoice.MinDFA, slider_min_dfa);
-
-        StringConverter<Double> labelConverter = new StringConverter<>() {
-            @Override
-            public String toString(Double object) {
-                return String.format("%.2fx", Math.pow(2, object));
-            }
-
-            @Override
-            public Double fromString(String string) {
-                return Math.log(Double.parseDouble(string)) / Math.log(2);
-            }
-        };
-        slider_nfa.setLabelFormatter(labelConverter);
-        slider_dfa.setLabelFormatter(labelConverter);
-        slider_min_dfa.setLabelFormatter(labelConverter);
-
-        for (GraphViewModel.GraphChoice graphChoice : GraphViewModel.GraphChoice.values()) {
-            sliderHashMap.get(graphChoice).valueProperty().addListener(
-                    (observable, oldValue, newValue) -> {
-                        model.setZoom(graphChoice, Math.pow(2, newValue.doubleValue()));
-                        updateImageZoom(graphChoice);
-                    }
-            );
+    public static final class Message {
+        public static abstract class EmitBase {
         }
 
-        updateLabels();
+        public static final class RequestDotString extends EmitBase {
+            public final GraphViewModel.GraphChoice graphChoice;
+
+            public RequestDotString(GraphViewModel.GraphChoice graphChoice) {
+                this.graphChoice = graphChoice;
+            }
+        }
+
+        public static final class RequestImageSubscription extends EmitBase {
+            public final GraphViewModel.GraphChoice graphChoice;
+            public final boolean subscribe;
+
+            public RequestImageSubscription(GraphViewModel.GraphChoice graphChoice, boolean subscribe) {
+                this.graphChoice = graphChoice;
+                this.subscribe = subscribe;
+            }
+        }
+
+        public static abstract class RecvBase {
+        }
+
+        public static final class ReceiveDotString extends RecvBase {
+            public final String dotString;
+
+            public ReceiveDotString(String dotString) {
+                this.dotString = dotString;
+            }
+        }
+
+        public static final class ReceiveImage extends RecvBase {
+            public final GraphViewModel.GraphChoice graphChoice;
+            public final Path imagePath;
+
+            public ReceiveImage(GraphViewModel.GraphChoice graphChoice, Path imagePath) {
+                this.graphChoice = graphChoice;
+                this.imagePath = imagePath;
+            }
+        }
+
+        private static final class ZoomViewEmit {
+            public final GraphViewModel.GraphChoice graphChoice;
+            public final GraphZoomViewController.Message.EmitBase msg;
+
+            public ZoomViewEmit(GraphViewModel.GraphChoice graphChoice, GraphZoomViewController.Message.EmitBase msg) {
+                this.graphChoice = graphChoice;
+                this.msg = msg;
+            }
+        }
+
+        private static final class ZoomViewRecv {
+            public final GraphViewModel.GraphChoice graphChoice;
+            public final GraphZoomViewController.Message.RecvBase msg;
+
+            public ZoomViewRecv(GraphViewModel.GraphChoice graphChoice, GraphZoomViewController.Message.RecvBase msg) {
+                this.graphChoice = graphChoice;
+                this.msg = msg;
+            }
+        }
     }
+
 }

@@ -1,19 +1,12 @@
 package RegexFA.Model;
 
-import java.util.HashMap;
-
 public class GraphViewModel extends Model {
     private GraphPaneChoice graphPaneChoice;
     private GraphChoice dotStringChoice;
-    private final HashMap<GraphChoice, Double> zoomHashMap;
 
     public GraphViewModel() {
         graphPaneChoice = GraphPaneChoice.ALL;
         dotStringChoice = GraphChoice.NFA;
-        zoomHashMap = new HashMap<>();
-        for (GraphChoice graphChoice : GraphChoice.values()) {
-            zoomHashMap.put(graphChoice, 1.0);
-        }
     }
 
     public GraphPaneChoice getGraphPaneChoice() {
@@ -32,19 +25,23 @@ public class GraphViewModel extends Model {
         this.dotStringChoice = dotStringChoice;
     }
 
-    public double getZoom(GraphChoice graphChoice) {
-        return zoomHashMap.get(graphChoice);
-    }
-
-    public void setZoom(GraphChoice graphChoice, double zoom) {
-        zoomHashMap.put(graphChoice, zoom);
-    }
-
     public enum GraphPaneChoice {
         ALL,
         NFA,
         DFA,
-        MinDFA
+        MinDFA;
+
+        public static GraphPaneChoice fromGraphChoice(GraphChoice graphChoice) {
+            switch (graphChoice) {
+                case NFA:
+                    return NFA;
+                case DFA:
+                    return DFA;
+                case MinDFA:
+                    return MinDFA;
+            }
+            throw new IllegalStateException();
+        }
     }
 
     public enum GraphChoice {
