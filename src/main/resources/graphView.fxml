@@ -7,7 +7,7 @@
     <children>
         <AnchorPane AnchorPane.leftAnchor="12.0" AnchorPane.rightAnchor="12.0" AnchorPane.topAnchor="0.0">
             <children>
-                <Label text="Graph (Dot Notation):" AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="0.0" />
+                <Label fx:id="label" text="Label" AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="0.0" />
                 <TextArea fx:id="textArea" editable="false" prefHeight="72.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="18.0" />
             </children>
         </AnchorPane>
@@ -21,9 +21,9 @@
                 <RowConstraints vgrow="ALWAYS" />
             </rowConstraints>
             <children>
-                <fx:include fx:id="graphZoomViewNFA" source="graphZoomView.fxml" />
-                <fx:include fx:id="graphZoomViewDFA" source="graphZoomView.fxml" GridPane.columnIndex="1" />
-                <fx:include fx:id="graphZoomViewMinDFA" source="graphZoomView.fxml" GridPane.columnIndex="2" />
+                <fx:include fx:id="graphZoomView1" source="graphZoomView.fxml" />
+                <fx:include fx:id="graphZoomView2" source="graphZoomView.fxml" GridPane.columnIndex="1" />
+                <fx:include fx:id="graphZoomView3" source="graphZoomView.fxml" GridPane.columnIndex="2" />
             </children>
         </GridPane>
     </children>

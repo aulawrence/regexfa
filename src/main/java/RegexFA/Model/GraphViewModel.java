@@ -6,7 +6,7 @@ public class GraphViewModel extends Model {
 
     public GraphViewModel() {
         graphPaneChoice = GraphPaneChoice.ALL;
-        dotStringChoice = GraphChoice.NFA;
+        dotStringChoice = GraphChoice.Graph1;
     }
 
     public GraphPaneChoice getGraphPaneChoice() {
@@ -27,26 +27,26 @@ public class GraphViewModel extends Model {
 
     public enum GraphPaneChoice {
         ALL,
-        NFA,
-        DFA,
-        MinDFA;
+        Pane1,
+        Pane2,
+        Pane3;
 
         public static GraphPaneChoice fromGraphChoice(GraphChoice graphChoice) {
             switch (graphChoice) {
-                case NFA:
-                    return NFA;
-                case DFA:
-                    return DFA;
-                case MinDFA:
-                    return MinDFA;
+                case Graph1:
+                    return Pane1;
+                case Graph2:
+                    return Pane2;
+                case Graph3:
+                    return Pane3;
             }
             throw new IllegalStateException();
         }
     }
 
     public enum GraphChoice {
-        NFA,
-        DFA,
-        MinDFA
+        Graph1,
+        Graph2,
+        Graph3
     }
 }

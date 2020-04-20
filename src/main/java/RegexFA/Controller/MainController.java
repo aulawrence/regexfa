@@ -50,7 +50,7 @@ public class MainController extends Controller<MainModel> {
     private final HashMap<GraphChoice, Path> imagePath;
     private final HashMap<GraphChoice, Boolean> imageSubscription;
 
-    private GraphChoice dotStringChoice = GraphChoice.NFA;
+    private GraphChoice dotStringChoice = GraphChoice.Graph1;
 
     public MainController() throws IOException {
         super(new MainModel());
@@ -127,6 +127,10 @@ public class MainController extends Controller<MainModel> {
             }
         });
 
+        graphViewController.setLabel("Graph (Dot Notation):");
+        graphViewController.setGraphLabel(GraphChoice.Graph1, "NFA");
+        graphViewController.setGraphLabel(GraphChoice.Graph2, "DFA");
+        graphViewController.setGraphLabel(GraphChoice.Graph3, "Min-DFA");
         graphViewController.getObservable().subscribe(new Observer<GraphViewController.Message.EmitBase>() {
             @Override
             public void onSubscribe(@NonNull Disposable d) {

@@ -8,6 +8,7 @@ import io.reactivex.rxjava3.disposables.Disposable;
 import io.reactivex.rxjava3.subjects.PublishSubject;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
+import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.layout.GridPane;
 
@@ -18,21 +19,23 @@ import java.util.ResourceBundle;
 
 public class GraphViewController extends Controller<GraphViewModel> {
     @FXML
+    private Label label;
+    @FXML
     private TextArea textArea;
     @FXML
     private GridPane gridPane;
     @FXML
-    private Node graphZoomViewNFA;
+    private Node graphZoomView1;
     @FXML
-    private Node graphZoomViewDFA;
+    private Node graphZoomView2;
     @FXML
-    private Node graphZoomViewMinDFA;
+    private Node graphZoomView3;
     @FXML
-    private GraphZoomViewController graphZoomViewNFAController;
+    private GraphZoomViewController graphZoomView1Controller;
     @FXML
-    private GraphZoomViewController graphZoomViewDFAController;
+    private GraphZoomViewController graphZoomView2Controller;
     @FXML
-    private GraphZoomViewController graphZoomViewMinDFAController;
+    private GraphZoomViewController graphZoomView3Controller;
 
     private final PublishSubject<Message.EmitBase> observable;
     private final Observer<Message.RecvBase> observer;
@@ -95,26 +98,30 @@ public class GraphViewController extends Controller<GraphViewModel> {
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        graphZoomViewNFAController.getObservable().map(msg -> new Message.ZoomViewEmit(GraphViewModel.GraphChoice.NFA, msg)).subscribe(zoomViewObserver);
-        zoomViewObservable.filter(msg -> msg.graphChoice == GraphViewModel.GraphChoice.NFA).map(msg -> msg.msg).subscribe(graphZoomViewNFAController.getObserver());
-        graphZoomViewDFAController.getObservable().map(msg -> new Message.ZoomViewEmit(GraphViewModel.GraphChoice.DFA, msg)).subscribe(zoomViewObserver);
-        zoomViewObservable.filter(msg -> msg.graphChoice == GraphViewModel.GraphChoice.DFA).map(msg -> msg.msg).subscribe(graphZoomViewDFAController.getObserver());
-        graphZoomViewMinDFAController.getObservable().map(msg -> new Message.ZoomViewEmit(GraphViewModel.GraphChoice.MinDFA, msg)).subscribe(zoomViewObserver);
-        zoomViewObservable.filter(msg -> msg.graphChoice == GraphViewModel.GraphChoice.MinDFA).map(msg -> msg.msg).subscribe(graphZoomViewMinDFAController.getObserver());
+        graphZoomView1Controller.getObservable().map(msg -> new Message.ZoomViewEmit(GraphViewModel.GraphChoice.Graph1, msg)).subscribe(zoomViewObserver);
+        zoomViewObservable.filter(msg -> msg.graphChoice == GraphViewModel.GraphChoice.Graph1).map(msg -> msg.msg).subscribe(graphZoomView1Controller.getObserver());
+        graphZoomView2Controller.getObservable().map(msg -> new Message.ZoomViewEmit(GraphViewModel.GraphChoice.Graph2, msg)).subscribe(zoomViewObserver);
+        zoomViewObservable.filter(msg -> msg.graphChoice == GraphViewModel.GraphChoice.Graph2).map(msg -> msg.msg).subscribe(graphZoomView2Controller.getObserver());
+        graphZoomView3Controller.getObservable().map(msg -> new Message.ZoomViewEmit(GraphViewModel.GraphChoice.Graph3, msg)).subscribe(zoomViewObserver);
+        zoomViewObservable.filter(msg -> msg.graphChoice == GraphViewModel.GraphChoice.Graph3).map(msg -> msg.msg).subscribe(graphZoomView3Controller.getObserver());
 
-        zoomViewObservable.onNext(new Message.ZoomViewRecv(GraphViewModel.GraphChoice.NFA, new GraphZoomViewController.Message.RecvLabel("NFA")));
-        zoomViewObservable.onNext(new Message.ZoomViewRecv(GraphViewModel.GraphChoice.DFA, new GraphZoomViewController.Message.RecvLabel("DFA")));
-        zoomViewObservable.onNext(new Message.ZoomViewRecv(GraphViewModel.GraphChoice.MinDFA, new GraphZoomViewController.Message.RecvLabel("MinDFA")));
+        gridPaneColumnNumHashMap.put(GraphViewModel.GraphChoice.Graph1, 0);
+        gridPaneColumnNumHashMap.put(GraphViewModel.GraphChoice.Graph2, 1);
+        gridPaneColumnNumHashMap.put(GraphViewModel.GraphChoice.Graph3, 2);
 
-        gridPaneColumnNumHashMap.put(GraphViewModel.GraphChoice.NFA, 0);
-        gridPaneColumnNumHashMap.put(GraphViewModel.GraphChoice.DFA, 1);
-        gridPaneColumnNumHashMap.put(GraphViewModel.GraphChoice.MinDFA, 2);
-
-        graphZoomViewHashMap.put(GraphViewModel.GraphChoice.NFA, graphZoomViewNFA);
-        graphZoomViewHashMap.put(GraphViewModel.GraphChoice.DFA, graphZoomViewDFA);
-        graphZoomViewHashMap.put(GraphViewModel.GraphChoice.MinDFA, graphZoomViewMinDFA);
+        graphZoomViewHashMap.put(GraphViewModel.GraphChoice.Graph1, graphZoomView1);
+        graphZoomViewHashMap.put(GraphViewModel.GraphChoice.Graph2, graphZoomView2);
+        graphZoomViewHashMap.put(GraphViewModel.GraphChoice.Graph3, graphZoomView3);
 
         updateLabels();
+    }
+
+    public void setLabel(String label) {
+        this.label.setText(label);
+    }
+
+    public void setGraphLabel(GraphViewModel.GraphChoice graphChoice, String label) {
+        zoomViewObservable.onNext(new Message.ZoomViewRecv(graphChoice, new GraphZoomViewController.Message.RecvLabel(label)));
     }
 
     private void handle(Message.RecvBase recvBase) {
@@ -203,12 +210,12 @@ public class GraphViewController extends Controller<GraphViewModel> {
         switch (model.getGraphPaneChoice()) {
             case ALL:
                 return true;
-            case NFA:
-                return graphChoice == GraphViewModel.GraphChoice.NFA;
-            case DFA:
-                return graphChoice == GraphViewModel.GraphChoice.DFA;
-            case MinDFA:
-                return graphChoice == GraphViewModel.GraphChoice.MinDFA;
+            case Pane1:
+                return graphChoice == GraphViewModel.GraphChoice.Graph1;
+            case Pane2:
+                return graphChoice == GraphViewModel.GraphChoice.Graph2;
+            case Pane3:
+                return graphChoice == GraphViewModel.GraphChoice.Graph3;
         }
         throw new IllegalStateException();
     }
@@ -217,12 +224,12 @@ public class GraphViewController extends Controller<GraphViewModel> {
         switch (model.getGraphPaneChoice()) {
             case ALL:
                 return 33.3;
-            case NFA:
-                return graphChoice == GraphViewModel.GraphChoice.NFA ? 100 : 0;
-            case DFA:
-                return graphChoice == GraphViewModel.GraphChoice.DFA ? 100 : 0;
-            case MinDFA:
-                return graphChoice == GraphViewModel.GraphChoice.MinDFA ? 100 : 0;
+            case Pane1:
+                return graphChoice == GraphViewModel.GraphChoice.Graph1 ? 100 : 0;
+            case Pane2:
+                return graphChoice == GraphViewModel.GraphChoice.Graph2 ? 100 : 0;
+            case Pane3:
+                return graphChoice == GraphViewModel.GraphChoice.Graph3 ? 100 : 0;
         }
         throw new IllegalStateException();
     }

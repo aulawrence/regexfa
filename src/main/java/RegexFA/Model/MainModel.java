@@ -94,11 +94,11 @@ public class MainModel extends Model implements Closeable {
             dfaNode = testStringDFANodes.get(testStringPos + 1);
         }
         switch (graphChoice) {
-            case DFA:
-                return dfa.toDotString_colorDFA(dfaNode, true);
-            case NFA:
+            case Graph1:
                 return nfa.toDotString_colorNFA(dfaNode, true);
-            case MinDFA:
+            case Graph2:
+                return dfa.toDotString_colorDFA(dfaNode, true);
+            case Graph3:
                 return min_dfa.toDotString_colorMinDFA(dfaNode, true);
             default:
                 throw new IllegalStateException();
