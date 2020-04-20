@@ -15,7 +15,7 @@
         <ScrollPane minHeight="200.0" minWidth="100.0" onMouseClicked="#onClick_scrollPane" pannable="true" AnchorPane.bottomAnchor="45.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="30.0" GridPane.columnIndex="0" GridPane.rowIndex="1" VBox.vgrow="ALWAYS">
             <ImageView fx:id="imageView" preserveRatio="true" />
         </ScrollPane>
-        <Slider fx:id="slider" blockIncrement="0.25" layoutY="1.0" majorTickUnit="1.0" max="2.0" maxHeight="-Infinity" min="-2.0" minHeight="-Infinity" minorTickCount="1" prefHeight="45.0" showTickLabels="true" showTickMarks="true" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" GridPane.rowIndex="2" GridPane.valignment="CENTER">
+        <Slider fx:id="slider" blockIncrement="0.25" focusTraversable="false" layoutY="1.0" majorTickUnit="1.0" max="2.0" maxHeight="-Infinity" min="-2.0" minHeight="-Infinity" minorTickCount="1" prefHeight="45.0" showTickLabels="true" showTickMarks="true" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" GridPane.rowIndex="2" GridPane.valignment="CENTER">
             <padding>
                 <Insets left="18.0" right="18.0" />
             </padding>

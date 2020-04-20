@@ -7,15 +7,9 @@ import io.reactivex.rxjava3.core.Observer;
 import io.reactivex.rxjava3.disposables.Disposable;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
-import javafx.scene.control.Button;
 import javafx.scene.control.ChoiceBox;
-import javafx.scene.control.TextField;
-import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
-import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.AnchorPane;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextFlow;
 
@@ -32,17 +26,22 @@ import static RegexFA.Model.GraphViewModel.GraphChoice;
 
 
 public class MainController extends Controller<MainModel> {
-    public ChoiceBox<Alphabet> choiceBox_alphabet;
-    public TextField textField_regex;
-    public Text text_regex;
-    public Text text_errRegex;
-    public Button button_regex;
-    public TextField textField_testString;
-    public Text text_errTestString;
-    public Button button_testString;
-    public TextFlow textFlow_testString;
-    public AnchorPane anchorPane_graphView;
+    @FXML
+    private ChoiceBox<Alphabet> choiceBox_alphabet;
+    @FXML
+    private TextFlow textFlow_testString;
+    @FXML
+    private Node textInputView_regex;
+    @FXML
+    private Node textInputView_testString;
+    @FXML
+    private Node graphView;
 
+    @FXML
+    private TextInputViewController textInputView_regexController;
+    @FXML
+    private TextInputViewController textInputView_testStringController;
+    @FXML
     private GraphViewController graphViewController;
 
     private final ArrayList<Text> testStringArrayList;
@@ -52,9 +51,6 @@ public class MainController extends Controller<MainModel> {
     private final HashMap<GraphChoice, Boolean> imageSubscription;
 
     private GraphChoice dotStringChoice = GraphChoice.NFA;
-
-    private boolean regexEditing = true;
-    private boolean testStringEditing = true;
 
     public MainController() throws IOException {
         super(new MainModel());
@@ -68,48 +64,90 @@ public class MainController extends Controller<MainModel> {
         }
     }
 
-    @FXML
-    private void onClick_buttonRegex(MouseEvent event) {
-        toggleRegex();
-    }
+    @Override
+    public void initialize(URL location, ResourceBundle resources) {
+        choiceBox_alphabet.getItems().setAll(Alphabet.values());
+        choiceBox_alphabet.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
+            if (newValue != oldValue) {
+                model.setAlphabet(newValue);
+                if (!model.getRegex().equals("")) {
+                    textInputView_regexController.getObserver().onNext(new TextInputViewController.Message.RecvToggle(2));
+                }
+            }
+        });
+        choiceBox_alphabet.getSelectionModel().select(Alphabet.Binary);
 
-    @FXML
-    private void onClick_buttonTestString(MouseEvent event) {
-        toggleTestString();
-    }
+        textInputView_regexController.getObserver().onNext(new TextInputViewController.Message.RecvLabel("Regex:"));
+        textInputView_regexController.getObserver().onNext(new TextInputViewController.Message.RecvHideResult(false));
+        textInputView_regexController.getObserver().onNext(new TextInputViewController.Message.RecvEnabled(true));
+        textInputView_regexController.getObservable().subscribe(new Observer<TextInputViewController.Message.EmitBase>() {
+            @Override
+            public void onSubscribe(@NonNull Disposable d) {
 
-    @FXML
-    private void onKeyReleased_buttonRegex(KeyEvent keyEvent) {
-        switch (keyEvent.getCode()) {
-            case SPACE:
-            case ENTER:
-                toggleRegex();
-                break;
-        }
-    }
+            }
 
-    @FXML
-    private void onKeyReleased_buttonTestString(KeyEvent keyEvent) {
-        switch (keyEvent.getCode()) {
-            case SPACE:
-            case ENTER:
-                toggleTestString();
-                break;
-        }
-    }
+            @Override
+            public void onNext(TextInputViewController.Message.@NonNull EmitBase emitBase) {
+                handle(TextChoice.Regex, emitBase);
+            }
 
-    @FXML
-    private void onKeyReleased_textFieldRegex(KeyEvent keyEvent) {
-        if (keyEvent.getCode() == KeyCode.ENTER) {
-            toggleRegex();
-        }
-    }
+            @Override
+            public void onError(@NonNull Throwable e) {
 
-    @FXML
-    private void onKeyReleased_textFieldTestString(KeyEvent keyEvent) {
-        if (keyEvent.getCode() == KeyCode.ENTER) {
-            toggleTestString();
-        }
+            }
+
+            @Override
+            public void onComplete() {
+
+            }
+        });
+
+        textInputView_testStringController.getObserver().onNext(new TextInputViewController.Message.RecvLabel("Test String:"));
+        textInputView_testStringController.getObserver().onNext(new TextInputViewController.Message.RecvHideResult(true));
+        textInputView_testStringController.getObserver().onNext(new TextInputViewController.Message.RecvEnabled(false));
+        textInputView_testStringController.getObservable().subscribe(new Observer<TextInputViewController.Message.EmitBase>() {
+            @Override
+            public void onSubscribe(@NonNull Disposable d) {
+
+            }
+
+            @Override
+            public void onNext(TextInputViewController.Message.@NonNull EmitBase emitBase) {
+                handle(TextChoice.TestString, emitBase);
+            }
+
+            @Override
+            public void onError(@NonNull Throwable e) {
+
+            }
+
+            @Override
+            public void onComplete() {
+
+            }
+        });
+
+        graphViewController.getObservable().subscribe(new Observer<GraphViewController.Message.EmitBase>() {
+            @Override
+            public void onSubscribe(@NonNull Disposable d) {
+
+            }
+
+            @Override
+            public void onNext(GraphViewController.Message.@NonNull EmitBase emitBase) {
+                handle(emitBase);
+            }
+
+            @Override
+            public void onError(@NonNull Throwable e) {
+
+            }
+
+            @Override
+            public void onComplete() {
+
+            }
+        });
     }
 
     @FXML
@@ -158,113 +196,118 @@ public class MainController extends Controller<MainModel> {
         }
     }
 
-    private void toggleRegex() {
-        if (regexEditing) {
-            executor.execute(
-                    () -> {
-                        model.setRegex(textField_regex.getText());
-                        Platform.runLater(
-                                () -> {
-                                    updateRegex();
-                                    updateDotString();
-                                    updateImages();
-                                }
-                        );
-                    }
-            );
-        } else {
-            updateRegex();
+    private void handle(GraphViewController.Message.EmitBase emitBase) {
+        if (emitBase instanceof GraphViewController.Message.EmitDotStringRequest) {
+            GraphViewController.Message.EmitDotStringRequest msg = (GraphViewController.Message.EmitDotStringRequest) emitBase;
+            handle(msg);
+        } else if (emitBase instanceof GraphViewController.Message.EmitImageSubscription) {
+            GraphViewController.Message.EmitImageSubscription msg = (GraphViewController.Message.EmitImageSubscription) emitBase;
+            handle(msg);
         }
     }
 
-    private void toggleTestString() {
-        if (testStringEditing) {
-            executor.execute(
-                    () -> {
-                        model.setTestString(textField_testString.getText());
-                        Platform.runLater(
-                                () -> updateTestString()
-                        );
-                    }
-            );
-        } else {
-            updateTestString();
-        }
-    }
-
-    private void updateRegex() {
-        if (regexEditing) {
-            if (model.isRegexSuccess()) {
-                button_regex.setText("Edit");
-                textField_regex.setVisible(false);
-                text_regex.setVisible(true);
-                text_regex.setText(model.getRegex());
-                text_errRegex.setVisible(false);
-                regexEditing = false;
-
-                textField_testString.setDisable(false);
-                button_testString.setDisable(false);
-                if (!model.getTestString().equals("")) {
-                    toggleTestString();
-                    toggleTestString();
-                }
-            } else {
-                text_errRegex.setVisible(true);
-                text_errRegex.setText(model.getRegexErrMsg());
-            }
-        } else {
-            button_regex.setText("Ok");
-            textField_regex.setVisible(true);
-            text_regex.setVisible(false);
-            regexEditing = true;
-
-            textField_testString.setDisable(true);
-            button_testString.setDisable(true);
-        }
-    }
-
-    private void handle(GraphViewController.Message.RequestImageSubscription msg) {
+    private void handle(GraphViewController.Message.EmitImageSubscription msg) {
         imageSubscription.put(msg.graphChoice, msg.subscribe);
         updateImages(true, msg.graphChoice);
     }
 
-    private void handle(GraphViewController.Message.RequestDotString msg) {
+    private void handle(GraphViewController.Message.EmitDotStringRequest msg) {
         dotStringChoice = msg.graphChoice;
         updateDotString();
     }
 
-    private void updateTestString() {
-        if (testStringEditing) {
-            if (model.isTestStringSuccess()) {
-                button_testString.setText("Edit");
-                textField_testString.setVisible(false);
-                text_errTestString.setVisible(false);
-                testStringEditing = false;
-
-                String testString = model.getTestString();
-                model.setTestStringPos(testString.length() - 1);
-                testStringArrayList.clear();
-                for (int i = 0; i < testString.length(); i++) {
-                    int pos = i;
-                    Text node = new Text(Character.toString(testString.charAt(i)));
-                    node.setOnMouseClicked(event -> {
-                        model.setTestStringPos(pos);
-                        updatePos();
-                    });
-                    testStringArrayList.add(node);
-                }
-                textFlow_testString.getChildren().setAll(testStringArrayList);
-                textFlow_testString.setVisible(true);
-                updatePos();
-            } else {
-                text_errTestString.setVisible(true);
-                text_errTestString.setText(model.getTestStringErrorMsg());
-            }
+    private void handle(TextChoice choice, TextInputViewController.Message.EmitBase emitBase) {
+        if (emitBase instanceof TextInputViewController.Message.EmitSubmit) {
+            handle(choice, (TextInputViewController.Message.EmitSubmit) emitBase);
+        } else if (emitBase instanceof TextInputViewController.Message.EmitStartEditing) {
+            handle(choice, (TextInputViewController.Message.EmitStartEditing) emitBase);
         } else {
-            button_testString.setText("Ok");
-            textField_testString.setVisible(true);
-            textFlow_testString.setVisible(false);
-            testStringEditing = true;
+            throw new IllegalStateException();
+        }
+    }
+
+    private void handle(TextChoice choice, TextInputViewController.Message.EmitSubmit msg) {
+        switch (choice) {
+            case Regex:
+                executor.execute(
+                        () -> {
+                            model.setRegex(msg.string);
+                            Platform.runLater(
+                                    () -> {
+                                        updateRegex();
+                                        updateDotString();
+                                        updateImages();
+                                        textInputView_regexController.getObserver().onNext(new TextInputViewController.Message.RecvToggle(msg.count));
+                                    }
+                            );
+
+                        }
+                );
+                break;
+            case TestString:
+                executor.execute(
+                        () -> {
+                            model.setTestString(msg.string);
+                            Platform.runLater(
+                                    () -> {
+                                        updateTestString();
+                                        textInputView_testStringController.getObserver().onNext(new TextInputViewController.Message.RecvToggle(msg.count));
+                                    }
+                            );
+
+                        }
+                );
+                break;
+            default:
+                throw new IllegalStateException();
+        }
+    }
+
+    private void handle(TextChoice choice, TextInputViewController.Message.EmitStartEditing msg) {
+        switch (choice) {
+            case Regex:
+                textInputView_regexController.getObserver().onNext(new TextInputViewController.Message.RecvToggle(msg.count));
+                break;
+            case TestString:
+                textFlow_testString.setVisible(false);
+                textInputView_testStringController.getObserver().onNext(new TextInputViewController.Message.RecvToggle(msg.count));
+                break;
+            default:
+                throw new IllegalStateException();
+        }
+    }
+
+    private void updateRegex() {
+        if (model.isRegexSuccess()) {
+            textInputView_regexController.getObserver().onNext(new TextInputViewController.Message.RecvResult(true, model.getRegex()));
+            textInputView_testStringController.getObserver().onNext(new TextInputViewController.Message.RecvEnabled(true));
+            textInputView_testStringController.getObserver().onNext(new TextInputViewController.Message.RecvToggle(2));
+        } else {
+            textInputView_regexController.getObserver().onNext(new TextInputViewController.Message.RecvResult(false, model.getRegexErrMsg()));
+            textInputView_testStringController.getObserver().onNext(new TextInputViewController.Message.RecvEnabled(false));
+        }
+    }
+
+    private void updateTestString() {
+        if (model.isTestStringSuccess()) {
+            textInputView_testStringController.getObserver().onNext(new TextInputViewController.Message.RecvResult(true, model.getTestString()));
+            String testString = model.getTestString();
+            model.setTestStringPos(testString.length() - 1);
+            testStringArrayList.clear();
+            for (int i = 0; i < testString.length(); i++) {
+                int pos = i;
+                Text node = new Text(Character.toString(testString.charAt(i)));
+                node.setOnMouseClicked(event -> {
+                    model.setTestStringPos(pos);
+                    updatePos();
+                });
+                testStringArrayList.add(node);
+            }
+            textFlow_testString.getChildren().setAll(testStringArrayList);
+            textFlow_testString.setVisible(true);
+            updatePos();
+        } else {
+            textInputView_testStringController.getObserver().onNext(new TextInputViewController.Message.RecvResult(false, model.getTestStringErrorMsg()));
         }
     }
 
@@ -326,66 +369,14 @@ public class MainController extends Controller<MainModel> {
         }
     }
 
-
-    @Override
-    public void initialize(URL location, ResourceBundle resources) {
-        choiceBox_alphabet.getItems().setAll(Alphabet.values());
-        choiceBox_alphabet.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
-            if (newValue != oldValue) {
-                model.setAlphabet(newValue);
-                if (!model.getRegex().equals("")) {
-                    toggleRegex();
-                    toggleRegex();
-                }
-            }
-        });
-        choiceBox_alphabet.getSelectionModel().select(Alphabet.Binary);
-
-        text_regex.setVisible(false);
-        text_errRegex.setVisible(false);
-        textFlow_testString.setVisible(false);
-        text_errTestString.setVisible(false);
-
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("/graphView.fxml"));
-        try {
-            Node node = loader.load();
-            graphViewController = loader.getController();
-            graphViewController.getObservable().subscribe(new Observer<GraphViewController.Message.EmitBase>() {
-                @Override
-                public void onSubscribe(@NonNull Disposable d) {
-
-                }
-
-                @Override
-                public void onNext(GraphViewController.Message.EmitBase emitBase) {
-                    if (emitBase instanceof GraphViewController.Message.RequestDotString) {
-                        GraphViewController.Message.RequestDotString msg = (GraphViewController.Message.RequestDotString) emitBase;
-                        handle(msg);
-                    } else if (emitBase instanceof GraphViewController.Message.RequestImageSubscription) {
-                        GraphViewController.Message.RequestImageSubscription msg = (GraphViewController.Message.RequestImageSubscription) emitBase;
-                        handle(msg);
-                    }
-                }
-
-                @Override
-                public void onError(@NonNull Throwable e) {
-
-                }
-
-                @Override
-                public void onComplete() {
-
-                }
-            });
-            anchorPane_graphView.getChildren().add(node);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
     public void shutdown() {
         executor.shutdown();
         model.close();
+    }
+
+    private enum TextChoice {
+        Regex,
+        TestString;
     }
 }
 

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+
+<AnchorPane pickOnBounds="false" xmlns="http://javafx.com/javafx/10.0.2-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="RegexFA.Controller.TextInputViewController">
+        <children>
+            <Label fx:id="label" text="Label:" AnchorPane.bottomAnchor="17.0" AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="0.0">
+         <padding>
+            <Insets bottom="5.0" top="5.0" />
+         </padding></Label>
+            <TextFlow fx:id="textFlow" focusTraversable="true" onKeyReleased="#onKeyReleased_textFlow" styleClass="text-flow" AnchorPane.bottomAnchor="17.0" AnchorPane.leftAnchor="150.0" AnchorPane.rightAnchor="60.0" AnchorPane.topAnchor="0.0">
+                <Text fx:id="text_result" text="result" />
+                <padding>
+                    <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+                </padding>
+            </TextFlow>
+            <TextField fx:id="textField" onKeyReleased="#onKeyReleased_textField" AnchorPane.bottomAnchor="17.0" AnchorPane.leftAnchor="150.0" AnchorPane.rightAnchor="60.0" AnchorPane.topAnchor="0.0" />
+            <Text fx:id="text_err" text="err" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="155.0" AnchorPane.rightAnchor="60.0" AnchorPane.topAnchor="27.0" />
+            <Button fx:id="button" mnemonicParsing="false" onKeyReleased="#onKeyReleased_button" onMouseClicked="#onClick_button" text="Ok" AnchorPane.bottomAnchor="17.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+        </children>
+</AnchorPane>

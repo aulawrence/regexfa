@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.geometry.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.*?>
@@ -14,22 +15,19 @@
         </AnchorPane>
         <AnchorPane AnchorPane.leftAnchor="12.0" AnchorPane.rightAnchor="12.0" AnchorPane.topAnchor="60.0">
             <children>
-                <Label text="Regular Expression:" AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="5.0" />
-                <Text fx:id="text_regex" text="regex" AnchorPane.leftAnchor="150.0" AnchorPane.rightAnchor="60.0" AnchorPane.topAnchor="5.0" />
-                <TextField fx:id="textField_regex" maxHeight="-Infinity" minHeight="-Infinity" onKeyReleased="#onKeyReleased_textFieldRegex" prefHeight="26.0" prefWidth="559.0" AnchorPane.leftAnchor="150.0" AnchorPane.rightAnchor="60.0" AnchorPane.topAnchor="0.0" />
-                <Text fx:id="text_errRegex" text="regexErr" AnchorPane.leftAnchor="150.0" AnchorPane.rightAnchor="60.0" AnchorPane.topAnchor="27.0" />
-                <Button fx:id="button_regex" mnemonicParsing="false" onKeyReleased="#onKeyReleased_buttonRegex" onMouseClicked="#onClick_buttonRegex" text="Ok" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+                <fx:include fx:id="textInputView_regex" source="textInputView.fxml" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
             </children>
         </AnchorPane>
         <AnchorPane AnchorPane.leftAnchor="12.0" AnchorPane.rightAnchor="12.0" AnchorPane.topAnchor="108.0">
             <children>
-                <Label text="Test String:" AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="5.0" />
-                <TextField fx:id="textField_testString" disable="true" maxHeight="-Infinity" minHeight="-Infinity" onKeyReleased="#onKeyReleased_textFieldTestString" prefHeight="26.0" prefWidth="559.0" AnchorPane.leftAnchor="150.0" AnchorPane.rightAnchor="60.0" AnchorPane.topAnchor="0.0" />
-                <TextFlow fx:id="textFlow_testString" focusTraversable="true" onKeyPressed="#onKeyPressed_textFlowTestString" onKeyReleased="#onKeyReleased_textFlowTestString" prefHeight="26.0" AnchorPane.leftAnchor="150.0" AnchorPane.rightAnchor="60.0" AnchorPane.topAnchor="5.0" />
-                <Text fx:id="text_errTestString" text="testStringErr" AnchorPane.leftAnchor="150.0" AnchorPane.rightAnchor="60.0" AnchorPane.topAnchor="27.0" />
-                <Button fx:id="button_testString" mnemonicParsing="false" onKeyReleased="#onKeyReleased_buttonTestString" onMouseClicked="#onClick_buttonTestString" text="Ok" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+                <TextFlow fx:id="textFlow_testString" focusTraversable="true" onKeyPressed="#onKeyPressed_textFlowTestString" onKeyReleased="#onKeyReleased_textFlowTestString" styleClass="text-flow" visible="false" AnchorPane.bottomAnchor="17.0" AnchorPane.leftAnchor="150.0" AnchorPane.rightAnchor="60.0" AnchorPane.topAnchor="0.0">
+                    <padding>
+                        <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+                    </padding>
+                </TextFlow>
+                <fx:include fx:id="textInputView_testString" source="textInputView.fxml" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
             </children>
         </AnchorPane>
-        <AnchorPane fx:id="anchorPane_graphView" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="150.0" />
+        <fx:include fx:id="graphView" source="graphView.fxml" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="150.0" />
     </children>
 </AnchorPane>

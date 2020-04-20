@@ -1,6 +1,13 @@
 .root {
     -fx-font-family: Helvetica, Arial, sans-serif;
 }
-.slider .axis {
+
+.text-flow:focused {
+     -fx-background-color: -fx-faint-focus-color, -fx-focus-color, -fx-background;
+     -fx-background-insets: -1, -0.5, 1;
+     -fx-background-radius: 4, 2, 2;
+}
+
+.slider > .axis {
     -fx-tick-label-font-family: Helvetica, Arial, sans-serif;
 }

@@ -6,6 +6,7 @@ import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.core.Observer;
 import io.reactivex.rxjava3.disposables.Disposable;
 import io.reactivex.rxjava3.subjects.PublishSubject;
+import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.Slider;
 import javafx.scene.image.Image;
@@ -18,9 +19,12 @@ import java.nio.file.Path;
 import java.util.ResourceBundle;
 
 public class GraphZoomViewController extends Controller<GraphZoomViewModel> {
-    public Label label;
-    public ImageView imageView;
-    public Slider slider;
+    @FXML
+    private Label label;
+    @FXML
+    private ImageView imageView;
+    @FXML
+    private Slider slider;
     private final PublishSubject<Message.EmitBase> observable;
     private final Observer<Message.RecvBase> observer;
 
@@ -96,11 +100,13 @@ public class GraphZoomViewController extends Controller<GraphZoomViewModel> {
         updateImage();
     }
 
-    public void onClick_label(MouseEvent mouseEvent) {
+    @FXML
+    private void onClick_label(MouseEvent mouseEvent) {
         observable.onNext(new Message.EmitClickLabel(mouseEvent.getClickCount()));
     }
 
-    public void onClick_scrollPane(MouseEvent mouseEvent) {
+    @FXML
+    private void onClick_scrollPane(MouseEvent mouseEvent) {
         observable.onNext(new Message.EmitClickImage(mouseEvent.getClickCount()));
     }
 

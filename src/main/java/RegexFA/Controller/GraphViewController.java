@@ -173,17 +173,17 @@ public class GraphViewController extends Controller<GraphViewModel> {
 
 
     private void updateTextArea() {
-        observable.onNext(new Message.RequestDotString(model.getDotStringChoice()));
+        observable.onNext(new Message.EmitDotStringRequest(model.getDotStringChoice()));
     }
 
     private void updateImageVisibility() {
         for (GraphViewModel.GraphChoice graphChoice : GraphViewModel.GraphChoice.values()) {
             if (getVisibility(graphChoice)) {
                 graphZoomViewHashMap.get(graphChoice).setVisible(true);
-                observable.onNext(new Message.RequestImageSubscription(graphChoice, true));
+                observable.onNext(new Message.EmitImageSubscription(graphChoice, true));
             } else {
                 graphZoomViewHashMap.get(graphChoice).setVisible(false);
-                observable.onNext(new Message.RequestImageSubscription(graphChoice, false));
+                observable.onNext(new Message.EmitImageSubscription(graphChoice, false));
             }
             gridPane.getColumnConstraints().get(gridPaneColumnNumHashMap.get(graphChoice)).setPercentWidth(getColumnWidth(graphChoice));
         }
@@ -239,19 +239,19 @@ public class GraphViewController extends Controller<GraphViewModel> {
         public static abstract class EmitBase {
         }
 
-        public static final class RequestDotString extends EmitBase {
+        public static final class EmitDotStringRequest extends EmitBase {
             public final GraphViewModel.GraphChoice graphChoice;
 
-            public RequestDotString(GraphViewModel.GraphChoice graphChoice) {
+            public EmitDotStringRequest(GraphViewModel.GraphChoice graphChoice) {
                 this.graphChoice = graphChoice;
             }
         }
 
-        public static final class RequestImageSubscription extends EmitBase {
+        public static final class EmitImageSubscription extends EmitBase {
             public final GraphViewModel.GraphChoice graphChoice;
             public final boolean subscribe;
 
-            public RequestImageSubscription(GraphViewModel.GraphChoice graphChoice, boolean subscribe) {
+            public EmitImageSubscription(GraphViewModel.GraphChoice graphChoice, boolean subscribe) {
                 this.graphChoice = graphChoice;
                 this.subscribe = subscribe;
             }
