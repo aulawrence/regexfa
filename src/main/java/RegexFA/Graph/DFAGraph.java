@@ -51,10 +51,11 @@ public class DFAGraph extends Graph<DFANode> {
         edgeDotStringMemo = null;
     }
 
-    public void clearNodeSet(){
-        for (DFANode node: nodeList){
+    public DFAGraph clearNodeSet() {
+        for (DFANode node : nodeList) {
             node.clearNodeSet();
         }
+        return this;
     }
 
     public String toDotString() {
@@ -313,12 +314,11 @@ public class DFAGraph extends Graph<DFANode> {
 
     // TODO Maybe add stream of discrepancies
 
-    public static Optional<String> getFirstDiscrepancyMin(DFAGraph g1, DFAGraph g2) {
-        DFAGraph result = xor(g1, g2).toDFA().minimize();
-        Alphabet alphabet = result.getAlphabet();
+    public static Optional<String> getFirstAcceptString(DFAGraph g) {
+        Alphabet alphabet = g.getAlphabet();
         HashMap<DFANode, String> stringMap = new HashMap<>();
         Queue<DFANode> nodeQueue = new ArrayDeque<>();
-        DFANode rootNode = result.getRootNode();
+        DFANode rootNode = g.getRootNode();
         stringMap.put(rootNode, "");
         nodeQueue.add(rootNode);
         while (!nodeQueue.isEmpty()) {
@@ -330,7 +330,7 @@ public class DFAGraph extends Graph<DFANode> {
             // Init i = 1 to ignore Alphabet.empty
             for (int i = 1; i < alphabet.n; i++) {
                 char ch = alphabet.alphabetList.get(i);
-                DFANode nextNode = result.moveFromNode(currNode, ch);
+                DFANode nextNode = g.moveFromNode(currNode, ch);
                 if (nextNode != null && !stringMap.containsKey(nextNode)) {
                     stringMap.put(nextNode, currS + ch);
                     nodeQueue.add(nextNode);
@@ -338,6 +338,10 @@ public class DFAGraph extends Graph<DFANode> {
             }
         }
         return Optional.empty();
+    }
+
+    public static Optional<String> getFirstDiscrepancyMin(DFAGraph g1, DFAGraph g2) {
+        return getFirstAcceptString(xor(g1, g2).toDFA().minimize());
     }
 
     public static boolean isEquivalentMin(DFAGraph g1, DFAGraph g2) {
