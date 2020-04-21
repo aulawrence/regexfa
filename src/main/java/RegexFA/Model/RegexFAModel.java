@@ -10,7 +10,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 
-public class MainModel extends Model implements Closeable {
+public class RegexFAModel extends Model implements Closeable {
 
     private final GraphViz graphViz;
 
@@ -28,7 +28,7 @@ public class MainModel extends Model implements Closeable {
     private DFAGraph dfa;
     private DFAGraph min_dfa;
 
-    public MainModel() throws IOException {
+    public RegexFAModel() throws IOException {
         regexSuccess = false;
         regex = "";
         testString = "";
@@ -88,7 +88,7 @@ public class MainModel extends Model implements Closeable {
         }
     }
 
-    public synchronized String getDotString(GraphViewModel.GraphChoice graphChoice) {
+    public synchronized String getDotString(GraphPanelModel.GraphChoice graphChoice) {
         Node dfaNode = null;
         if (testStringPos + 1 < testStringDFANodes.size()) {
             dfaNode = testStringDFANodes.get(testStringPos + 1);
@@ -105,7 +105,7 @@ public class MainModel extends Model implements Closeable {
         }
     }
 
-    public synchronized Path getImage(GraphViewModel.GraphChoice graphChoice, String imgName) {
+    public synchronized Path getImage(GraphPanelModel.GraphChoice graphChoice, String imgName) {
         return Graph.getImage(graphViz, getDotString(graphChoice), imgName);
     }
 

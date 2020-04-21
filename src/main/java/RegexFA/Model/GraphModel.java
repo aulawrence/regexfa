@@ -2,12 +2,12 @@ package RegexFA.Model;
 
 import java.nio.file.Path;
 
-public class GraphZoomViewModel extends Model {
+public class GraphModel extends Model {
     private String label;
     private Path imagePath;
     private double zoom;
 
-    public GraphZoomViewModel() {
+    public GraphModel() {
         label = "Graph";
         imagePath = null;
         zoom = 1.0;

@@ -11,7 +11,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Optional;
 
-public class DiffViewModel extends Model implements Closeable {
+public class RegexDiffModel extends Model implements Closeable {
 
     private final GraphViz graphViz = new GraphViz();
     private final ArrayList<Node> testStringNodes1 = new ArrayList<>();
@@ -34,7 +34,7 @@ public class DiffViewModel extends Model implements Closeable {
     private DFAGraph min_dfa2 = null;
     private DFAGraph min_dfaXor = null;
 
-    public DiffViewModel() throws IOException {
+    public RegexDiffModel() throws IOException {
     }
 
     private void validateRegex1() {
@@ -135,7 +135,7 @@ public class DiffViewModel extends Model implements Closeable {
         }
     }
 
-    private String getDotString(GraphViewModel.GraphChoice graphChoice) {
+    private String getDotString(GraphPanelModel.GraphChoice graphChoice) {
         Node dfaNode = null;
         switch (graphChoice) {
             case Graph1:
@@ -158,7 +158,7 @@ public class DiffViewModel extends Model implements Closeable {
         }
     }
 
-    public Path getImage(GraphViewModel.GraphChoice graphChoice, String imgName) {
+    public Path getImage(GraphPanelModel.GraphChoice graphChoice, String imgName) {
         return Graph.getImage(graphViz, getDotString(graphChoice), imgName);
     }
 

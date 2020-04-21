@@ -1,6 +1,6 @@
 package RegexFA.Controller;
 
-import RegexFA.Model.GraphZoomViewModel;
+import RegexFA.Model.GraphModel;
 import io.reactivex.rxjava3.annotations.NonNull;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.core.Observer;
@@ -18,7 +18,7 @@ import java.net.URL;
 import java.nio.file.Path;
 import java.util.ResourceBundle;
 
-public class GraphZoomViewController extends Controller<GraphZoomViewModel> {
+public class GraphController extends Controller<GraphModel> {
     @FXML
     private Label label;
     @FXML
@@ -28,8 +28,8 @@ public class GraphZoomViewController extends Controller<GraphZoomViewModel> {
     private final PublishSubject<Message.EmitBase> observable;
     private final Observer<Message.RecvBase> observer;
 
-    public GraphZoomViewController() {
-        super(new GraphZoomViewModel());
+    public GraphController() {
+        super(new GraphModel());
         observable = PublishSubject.create();
         observer = new Observer<>() {
             @Override

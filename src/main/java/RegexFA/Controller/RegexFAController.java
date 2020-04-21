@@ -1,7 +1,7 @@
 package RegexFA.Controller;
 
 import RegexFA.Alphabet;
-import RegexFA.Model.MainModel;
+import RegexFA.Model.RegexFAModel;
 import io.reactivex.rxjava3.annotations.NonNull;
 import io.reactivex.rxjava3.core.Observer;
 import io.reactivex.rxjava3.disposables.Disposable;
@@ -22,10 +22,10 @@ import java.util.ResourceBundle;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import static RegexFA.Model.GraphViewModel.GraphChoice;
+import static RegexFA.Model.GraphPanelModel.GraphChoice;
 
 
-public class MainController extends Controller<MainModel> {
+public class RegexFAController extends Controller<RegexFAModel> {
     @FXML
     private ChoiceBox<Alphabet> choiceBox_alphabet;
     @FXML
@@ -35,14 +35,14 @@ public class MainController extends Controller<MainModel> {
     @FXML
     private Node textInputView_testString;
     @FXML
-    private Node graphView;
+    private Node graphPanel;
 
     @FXML
-    private TextInputViewController textInputView_regexController;
+    private TextInputController textInputView_regexController;
     @FXML
-    private TextInputViewController textInputView_testStringController;
+    private TextInputController textInputView_testStringController;
     @FXML
-    private GraphViewController graphViewController;
+    private GraphPanelController graphPanelController;
 
     private final ArrayList<Text> testStringArrayList;
     private final ExecutorService executor;
@@ -52,8 +52,8 @@ public class MainController extends Controller<MainModel> {
 
     private GraphChoice dotStringChoice = GraphChoice.Graph1;
 
-    public MainController() throws IOException {
-        super(new MainModel());
+    public RegexFAController() throws IOException {
+        super(new RegexFAModel());
         testStringArrayList = new ArrayList<>();
         executor = Executors.newFixedThreadPool(3);
         imagePath = new HashMap<>();
@@ -71,23 +71,23 @@ public class MainController extends Controller<MainModel> {
             if (newValue != oldValue) {
                 model.setAlphabet(newValue);
                 if (!model.getRegex().equals("")) {
-                    textInputView_regexController.getObserver().onNext(new TextInputViewController.Message.RecvToggle(2));
+                    textInputView_regexController.getObserver().onNext(new TextInputController.Message.RecvToggle(2));
                 }
             }
         });
         choiceBox_alphabet.getSelectionModel().select(Alphabet.Binary);
 
-        textInputView_regexController.getObserver().onNext(new TextInputViewController.Message.RecvLabel("Regex:"));
-        textInputView_regexController.getObserver().onNext(new TextInputViewController.Message.RecvHideResult(false));
-        textInputView_regexController.getObserver().onNext(new TextInputViewController.Message.RecvEnabled(true));
-        textInputView_regexController.getObservable().subscribe(new Observer<TextInputViewController.Message.EmitBase>() {
+        textInputView_regexController.getObserver().onNext(new TextInputController.Message.RecvLabel("Regex:"));
+        textInputView_regexController.getObserver().onNext(new TextInputController.Message.RecvHideResult(false));
+        textInputView_regexController.getObserver().onNext(new TextInputController.Message.RecvEnabled(true));
+        textInputView_regexController.getObservable().subscribe(new Observer<TextInputController.Message.EmitBase>() {
             @Override
             public void onSubscribe(@NonNull Disposable d) {
 
             }
 
             @Override
-            public void onNext(TextInputViewController.Message.@NonNull EmitBase emitBase) {
+            public void onNext(TextInputController.Message.@NonNull EmitBase emitBase) {
                 handle(TextChoice.Regex, emitBase);
             }
 
@@ -102,17 +102,17 @@ public class MainController extends Controller<MainModel> {
             }
         });
 
-        textInputView_testStringController.getObserver().onNext(new TextInputViewController.Message.RecvLabel("Test String:"));
-        textInputView_testStringController.getObserver().onNext(new TextInputViewController.Message.RecvHideResult(true));
-        textInputView_testStringController.getObserver().onNext(new TextInputViewController.Message.RecvEnabled(false));
-        textInputView_testStringController.getObservable().subscribe(new Observer<TextInputViewController.Message.EmitBase>() {
+        textInputView_testStringController.getObserver().onNext(new TextInputController.Message.RecvLabel("Test String:"));
+        textInputView_testStringController.getObserver().onNext(new TextInputController.Message.RecvHideResult(true));
+        textInputView_testStringController.getObserver().onNext(new TextInputController.Message.RecvEnabled(false));
+        textInputView_testStringController.getObservable().subscribe(new Observer<TextInputController.Message.EmitBase>() {
             @Override
             public void onSubscribe(@NonNull Disposable d) {
 
             }
 
             @Override
-            public void onNext(TextInputViewController.Message.@NonNull EmitBase emitBase) {
+            public void onNext(TextInputController.Message.@NonNull EmitBase emitBase) {
                 handle(TextChoice.TestString, emitBase);
             }
 
@@ -127,18 +127,18 @@ public class MainController extends Controller<MainModel> {
             }
         });
 
-        graphViewController.setLabel("Graph (Dot Notation):");
-        graphViewController.setGraphLabel(GraphChoice.Graph1, "NFA");
-        graphViewController.setGraphLabel(GraphChoice.Graph2, "DFA");
-        graphViewController.setGraphLabel(GraphChoice.Graph3, "Min-DFA");
-        graphViewController.getObservable().subscribe(new Observer<GraphViewController.Message.EmitBase>() {
+        graphPanelController.setLabel("Graph (Dot Notation):");
+        graphPanelController.setGraphLabel(GraphChoice.Graph1, "NFA");
+        graphPanelController.setGraphLabel(GraphChoice.Graph2, "DFA");
+        graphPanelController.setGraphLabel(GraphChoice.Graph3, "Min-DFA");
+        graphPanelController.getObservable().subscribe(new Observer<GraphPanelController.Message.EmitBase>() {
             @Override
             public void onSubscribe(@NonNull Disposable d) {
 
             }
 
             @Override
-            public void onNext(GraphViewController.Message.@NonNull EmitBase emitBase) {
+            public void onNext(GraphPanelController.Message.@NonNull EmitBase emitBase) {
                 handle(emitBase);
             }
 
@@ -200,39 +200,39 @@ public class MainController extends Controller<MainModel> {
         }
     }
 
-    private void handle(GraphViewController.Message.EmitBase emitBase) {
-        if (emitBase instanceof GraphViewController.Message.EmitGraphFocus) {
-            GraphViewController.Message.EmitGraphFocus msg = (GraphViewController.Message.EmitGraphFocus) emitBase;
+    private void handle(GraphPanelController.Message.EmitBase emitBase) {
+        if (emitBase instanceof GraphPanelController.Message.EmitGraphFocus) {
+            GraphPanelController.Message.EmitGraphFocus msg = (GraphPanelController.Message.EmitGraphFocus) emitBase;
             handle(msg);
-        } else if (emitBase instanceof GraphViewController.Message.EmitImageSubscription) {
-            GraphViewController.Message.EmitImageSubscription msg = (GraphViewController.Message.EmitImageSubscription) emitBase;
+        } else if (emitBase instanceof GraphPanelController.Message.EmitImageSubscription) {
+            GraphPanelController.Message.EmitImageSubscription msg = (GraphPanelController.Message.EmitImageSubscription) emitBase;
             handle(msg);
         } else {
             throw new IllegalArgumentException();
         }
     }
 
-    private void handle(GraphViewController.Message.EmitImageSubscription msg) {
+    private void handle(GraphPanelController.Message.EmitImageSubscription msg) {
         imageSubscription.put(msg.graphChoice, msg.subscribe);
         updateImages(true, msg.graphChoice);
     }
 
-    private void handle(GraphViewController.Message.EmitGraphFocus msg) {
+    private void handle(GraphPanelController.Message.EmitGraphFocus msg) {
         dotStringChoice = msg.graphChoice;
         updateDotString();
     }
 
-    private void handle(TextChoice choice, TextInputViewController.Message.EmitBase emitBase) {
-        if (emitBase instanceof TextInputViewController.Message.EmitSubmit) {
-            handle(choice, (TextInputViewController.Message.EmitSubmit) emitBase);
-        } else if (emitBase instanceof TextInputViewController.Message.EmitStartEditing) {
-            handle(choice, (TextInputViewController.Message.EmitStartEditing) emitBase);
+    private void handle(TextChoice choice, TextInputController.Message.EmitBase emitBase) {
+        if (emitBase instanceof TextInputController.Message.EmitSubmit) {
+            handle(choice, (TextInputController.Message.EmitSubmit) emitBase);
+        } else if (emitBase instanceof TextInputController.Message.EmitStartEditing) {
+            handle(choice, (TextInputController.Message.EmitStartEditing) emitBase);
         } else {
             throw new IllegalArgumentException();
         }
     }
 
-    private void handle(TextChoice choice, TextInputViewController.Message.EmitSubmit msg) {
+    private void handle(TextChoice choice, TextInputController.Message.EmitSubmit msg) {
         switch (choice) {
             case Regex:
                 executor.execute(
@@ -242,7 +242,7 @@ public class MainController extends Controller<MainModel> {
                                     () -> {
                                         updateRegex();
                                         updateDotString();
-                                        textInputView_regexController.getObserver().onNext(new TextInputViewController.Message.RecvToggle(msg.count));
+                                        textInputView_regexController.getObserver().onNext(new TextInputController.Message.RecvToggle(msg.count));
                                     }
                             );
                         }
@@ -255,7 +255,7 @@ public class MainController extends Controller<MainModel> {
                             Platform.runLater(
                                     () -> {
                                         updateTestString();
-                                        textInputView_testStringController.getObserver().onNext(new TextInputViewController.Message.RecvToggle(msg.count));
+                                        textInputView_testStringController.getObserver().onNext(new TextInputController.Message.RecvToggle(msg.count));
                                     }
                             );
                         }
@@ -266,14 +266,14 @@ public class MainController extends Controller<MainModel> {
         }
     }
 
-    private void handle(TextChoice choice, TextInputViewController.Message.EmitStartEditing msg) {
+    private void handle(TextChoice choice, TextInputController.Message.EmitStartEditing msg) {
         switch (choice) {
             case Regex:
-                textInputView_regexController.getObserver().onNext(new TextInputViewController.Message.RecvToggle(msg.count));
+                textInputView_regexController.getObserver().onNext(new TextInputController.Message.RecvToggle(msg.count));
                 break;
             case TestString:
                 textFlow_testString.setVisible(false);
-                textInputView_testStringController.getObserver().onNext(new TextInputViewController.Message.RecvToggle(msg.count));
+                textInputView_testStringController.getObserver().onNext(new TextInputController.Message.RecvToggle(msg.count));
                 break;
             default:
                 throw new IllegalStateException();
@@ -282,18 +282,18 @@ public class MainController extends Controller<MainModel> {
 
     private void updateRegex() {
         if (model.isRegexSuccess()) {
-            textInputView_regexController.getObserver().onNext(new TextInputViewController.Message.RecvResult(true, model.getRegex()));
-            textInputView_testStringController.getObserver().onNext(new TextInputViewController.Message.RecvEnabled(true));
-            textInputView_testStringController.getObserver().onNext(new TextInputViewController.Message.RecvToggle(2));
+            textInputView_regexController.getObserver().onNext(new TextInputController.Message.RecvResult(true, model.getRegex()));
+            textInputView_testStringController.getObserver().onNext(new TextInputController.Message.RecvEnabled(true));
+            textInputView_testStringController.getObserver().onNext(new TextInputController.Message.RecvToggle(2));
         } else {
-            textInputView_regexController.getObserver().onNext(new TextInputViewController.Message.RecvResult(false, model.getRegexErrMsg()));
-            textInputView_testStringController.getObserver().onNext(new TextInputViewController.Message.RecvEnabled(false));
+            textInputView_regexController.getObserver().onNext(new TextInputController.Message.RecvResult(false, model.getRegexErrMsg()));
+            textInputView_testStringController.getObserver().onNext(new TextInputController.Message.RecvEnabled(false));
         }
     }
 
     private void updateTestString() {
         if (model.isTestStringSuccess()) {
-            textInputView_testStringController.getObserver().onNext(new TextInputViewController.Message.RecvResult(true, model.getTestString()));
+            textInputView_testStringController.getObserver().onNext(new TextInputController.Message.RecvResult(true, model.getTestString()));
             String testString = model.getTestString();
             model.setTestStringPos(testString.length() - 1);
             testStringArrayList.clear();
@@ -310,7 +310,7 @@ public class MainController extends Controller<MainModel> {
             textFlow_testString.setVisible(true);
             updatePos();
         } else {
-            textInputView_testStringController.getObserver().onNext(new TextInputViewController.Message.RecvResult(false, model.getTestStringErrorMsg()));
+            textInputView_testStringController.getObserver().onNext(new TextInputController.Message.RecvResult(false, model.getTestStringErrorMsg()));
         }
     }
 
@@ -335,9 +335,9 @@ public class MainController extends Controller<MainModel> {
 
     private void updateDotString() {
         if (model.isRegexSuccess()) {
-            graphViewController.getObserver().onNext(new GraphViewController.Message.ReceiveText(model.getDotString(dotStringChoice)));
+            graphPanelController.getObserver().onNext(new GraphPanelController.Message.ReceiveText(model.getDotString(dotStringChoice)));
         } else {
-            graphViewController.getObserver().onNext(new GraphViewController.Message.ReceiveText(""));
+            graphPanelController.getObserver().onNext(new GraphPanelController.Message.ReceiveText(""));
         }
     }
 
@@ -354,20 +354,20 @@ public class MainController extends Controller<MainModel> {
                         () -> {
                             imagePath.put(graphChoice, model.getImage(graphChoice, graphChoice.toString()));
                             Platform.runLater(
-                                    () -> graphViewController.getObserver().onNext(new GraphViewController.Message.ReceiveImage(graphChoice, imagePath.get(graphChoice)))
+                                    () -> graphPanelController.getObserver().onNext(new GraphPanelController.Message.ReceiveImage(graphChoice, imagePath.get(graphChoice)))
                             );
                         }
                 );
             } else if (!nullOnly && !imageSubscription.get(graphChoice)) {
                 imagePath.put(graphChoice, null);
                 Platform.runLater(
-                        () -> graphViewController.getObserver().onNext(new GraphViewController.Message.ReceiveImage(graphChoice, null))
+                        () -> graphPanelController.getObserver().onNext(new GraphPanelController.Message.ReceiveImage(graphChoice, null))
                 );
             }
         } else {
             imagePath.put(graphChoice, null);
             Platform.runLater(
-                    () -> graphViewController.getObserver().onNext(new GraphViewController.Message.ReceiveImage(graphChoice, null))
+                    () -> graphPanelController.getObserver().onNext(new GraphPanelController.Message.ReceiveImage(graphChoice, null))
             );
         }
     }

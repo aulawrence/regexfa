@@ -17,7 +17,7 @@ import javafx.scene.text.TextFlow;
 import java.net.URL;
 import java.util.ResourceBundle;
 
-public class TextInputViewController extends Controller<TextInputModel> {
+public class TextInputController extends Controller<TextInputModel> {
 
     @FXML
     private Label label;
@@ -35,7 +35,7 @@ public class TextInputViewController extends Controller<TextInputModel> {
     private final PublishSubject<Message.EmitBase> observable;
     private final Observer<Message.RecvBase> observer;
 
-    public TextInputViewController() {
+    public TextInputController() {
         super(new TextInputModel());
         observable = PublishSubject.create();
         observer = new Observer<Message.RecvBase>() {

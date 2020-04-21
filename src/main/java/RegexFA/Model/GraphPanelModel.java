@@ -1,10 +1,10 @@
 package RegexFA.Model;
 
-public class GraphViewModel extends Model {
+public class GraphPanelModel extends Model {
     private GraphPaneChoice graphPaneChoice;
     private GraphChoice graphFocus;
 
-    public GraphViewModel() {
+    public GraphPanelModel() {
         graphPaneChoice = GraphPaneChoice.ALL;
         graphFocus = GraphChoice.Graph1;
     }

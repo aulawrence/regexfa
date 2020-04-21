@@ -27,7 +27,7 @@
                 <artifactId>javafx-maven-plugin</artifactId>
                 <version>0.0.4</version>
                 <configuration>
-                    <mainClass>RegexFA.MainApp</mainClass>
+                    <mainClass>RegexFA.RegexFAApp</mainClass>
                 </configuration>
             </plugin>
         </plugins>
