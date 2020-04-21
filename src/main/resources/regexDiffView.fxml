@@ -15,7 +15,7 @@
         </AnchorPane>
         <fx:include fx:id="textInputView_regex1" source="textInputView.fxml" AnchorPane.leftAnchor="12.0" AnchorPane.rightAnchor="12.0" AnchorPane.topAnchor="60.0" />
         <fx:include fx:id="textInputView_regex2" source="textInputView.fxml" AnchorPane.leftAnchor="12.0" AnchorPane.rightAnchor="12.0" AnchorPane.topAnchor="108.0" />
-        <AnchorPane AnchorPane.leftAnchor="12.0" AnchorPane.rightAnchor="12.0" AnchorPane.topAnchor="150.0">
+        <AnchorPane AnchorPane.leftAnchor="12.0" AnchorPane.rightAnchor="12.0" AnchorPane.topAnchor="156.0">
             <children>
                 <TextFlow fx:id="textFlow_testString" focusTraversable="true" onKeyPressed="#onKeyPressed_textFlowTestString" onKeyReleased="#onKeyReleased_textFlowTestString" styleClass="text-flow" visible="false" AnchorPane.bottomAnchor="17.0" AnchorPane.leftAnchor="150.0" AnchorPane.rightAnchor="60.0" AnchorPane.topAnchor="0.0">
                     <padding>
@@ -25,6 +25,6 @@
                 <fx:include fx:id="textInputView_testString" source="textInputView.fxml" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
             </children>
         </AnchorPane>
-        <fx:include fx:id="graphPanel" source="graphPanelView.fxml" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="198.0" />
+        <fx:include fx:id="graphPanel" source="graphPanelView.fxml" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="204.0" />
     </children>
 </AnchorPane>

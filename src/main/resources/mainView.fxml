@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane prefHeight="768.0" prefWidth="1024.0" xmlns="http://javafx.com/javafx/10.0.2-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="RegexFA.Controller.MainController">
+    <children>
+        <MenuBar AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+            <menus>
+                <Menu text="_File">
+                    <items>
+                        <MenuItem fx:id="menuItem_quit" mnemonicParsing="false" onAction="#onAction_menuItem" text="Exit" />
+                    </items>
+                </Menu>
+                <Menu text="_View">
+                    <items>
+                        <MenuItem fx:id="menuItem_regexFA" mnemonicParsing="false" onAction="#onAction_menuItem" text="RegexFA" />
+                        <MenuItem fx:id="menuItem_regexDiff" mnemonicParsing="false" onAction="#onAction_menuItem" text="RegexDiff" />
+                    </items>
+                </Menu>
+                <Menu text="_Tools">
+                    <items>
+                        <MenuItem fx:id="menuItem_example" mnemonicParsing="false" onAction="#onAction_menuItem" text="Load Example" />
+                    </items>
+                </Menu>
+            </menus>
+        </MenuBar>
+        <AnchorPane fx:id="anchorPane" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="29.0" />
+    </children>
+</AnchorPane>

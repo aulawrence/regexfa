@@ -2,6 +2,7 @@ package RegexFA.Controller;
 
 import RegexFA.Model.TextInputModel;
 import io.reactivex.rxjava3.annotations.NonNull;
+import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.core.Observer;
 import io.reactivex.rxjava3.disposables.Disposable;
 import io.reactivex.rxjava3.subjects.PublishSubject;
@@ -169,6 +170,7 @@ public class TextInputController extends Controller<TextInputModel> {
         } else {
             button.setText("Edit");
             text_err.setText(model.getErr());
+            textField.setText(model.getResult());
             textField.setVisible(false);
             if (model.isHideResult()) {
                 textFlow.setVisible(false);
@@ -180,7 +182,7 @@ public class TextInputController extends Controller<TextInputModel> {
         }
     }
 
-    public PublishSubject<Message.EmitBase> getObservable() {
+    public Observable<Message.EmitBase> getObservable() {
         return observable;
     }
 

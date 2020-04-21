@@ -1,8 +1,8 @@
 package RegexFA.Controller;
 
 import RegexFA.Alphabet;
-import RegexFA.Model.RegexDiffModel;
 import RegexFA.Model.GraphPanelModel;
+import RegexFA.Model.RegexDiffModel;
 import io.reactivex.rxjava3.annotations.NonNull;
 import io.reactivex.rxjava3.core.Observer;
 import io.reactivex.rxjava3.disposables.Disposable;
@@ -10,6 +10,7 @@ import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.ChoiceBox;
+import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextFlow;
@@ -190,6 +191,7 @@ public class RegexDiffController extends Controller<RegexDiffModel> {
                 case DOWN:
                 case LEFT:
                 case RIGHT:
+                case ENTER:
                     keyEvent.consume();
                     break;
             }
@@ -199,29 +201,33 @@ public class RegexDiffController extends Controller<RegexDiffModel> {
     @FXML
     private void onKeyReleased_textFlowTestString(KeyEvent keyEvent) {
         if (model.isGraphSuccess() && model.isTestStringSuccess()) {
-            int curr = model.getTestStringPos();
-            int target = curr;
-            int lim = model.getTestString().length() - 1;
-            switch (keyEvent.getCode()) {
-                case UP:
-                case HOME:
-                    target = -1;
-                    break;
-                case DOWN:
-                case END:
-                    target = lim;
-                    break;
-                case LEFT:
-                    target = curr - 1;
-                    break;
-                case RIGHT:
-                    target = curr + 1;
-                    break;
-            }
-            target = Integer.max(-1, Integer.min(target, lim));
-            if (target != curr) {
-                model.setTestStringPos(target);
-                updatePos();
+            if (keyEvent.getCode() == KeyCode.ENTER) {
+                textInputView_testStringController.getObserver().onNext(new TextInputController.Message.RecvToggle(1));
+            } else {
+                int curr = model.getTestStringPos();
+                int target = curr;
+                int lim = model.getTestString().length() - 1;
+                switch (keyEvent.getCode()) {
+                    case UP:
+                    case HOME:
+                        target = -1;
+                        break;
+                    case DOWN:
+                    case END:
+                        target = lim;
+                        break;
+                    case LEFT:
+                        target = curr - 1;
+                        break;
+                    case RIGHT:
+                        target = curr + 1;
+                        break;
+                }
+                target = Integer.max(-1, Integer.min(target, lim));
+                if (target != curr) {
+                    model.setTestStringPos(target);
+                    updatePos();
+                }
             }
         }
     }
@@ -417,6 +423,26 @@ public class RegexDiffController extends Controller<RegexDiffModel> {
         }
         updateImages();
         textFlow_testString.requestFocus();
+    }
+
+    public void loadExample() {
+        model.setAlphabet(Alphabet.Binary);
+        model.setRegex1(".*(10)+(01)+");
+        model.setRegex2("(10)+(01)+.*");
+        updateRegex1();
+        updateRegex2();
+        executor.execute(
+                () -> {
+                    model.setTestString("01001");
+                    Platform.runLater(
+                            () -> {
+                                updateTestString();
+                                updateText();
+                                updateImages();
+                            }
+                    );
+                }
+        );
     }
 
     public void shutdown() {
