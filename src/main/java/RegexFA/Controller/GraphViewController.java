@@ -125,12 +125,12 @@ public class GraphViewController extends Controller<GraphViewModel> {
     }
 
     private void handle(Message.RecvBase recvBase) {
-        if (recvBase instanceof Message.ReceiveDotString) {
-            handle((Message.ReceiveDotString) recvBase);
+        if (recvBase instanceof Message.ReceiveText) {
+            handle((Message.ReceiveText) recvBase);
         } else if (recvBase instanceof Message.ReceiveImage) {
             handle((Message.ReceiveImage) recvBase);
         } else {
-            throw new IllegalStateException();
+            throw new IllegalArgumentException();
         }
     }
 
@@ -138,8 +138,8 @@ public class GraphViewController extends Controller<GraphViewModel> {
         zoomViewObservable.onNext(new Message.ZoomViewRecv(msg.graphChoice, new GraphZoomViewController.Message.RecvImage(msg.imagePath)));
     }
 
-    private void handle(Message.ReceiveDotString msg) {
-        textArea.setText(msg.dotString);
+    private void handle(Message.ReceiveText msg) {
+        textArea.setText(msg.text);
     }
 
     private void handle(Message.ZoomViewEmit msg) {
@@ -173,14 +173,14 @@ public class GraphViewController extends Controller<GraphViewModel> {
     }
 
     private void modelSetSelection(GraphViewModel.GraphChoice graphChoice) {
-        model.setDotStringChoice(graphChoice);
+        model.setGraphFocus(graphChoice);
         updateTextArea();
         updateLabels();
     }
 
 
     private void updateTextArea() {
-        observable.onNext(new Message.EmitDotStringRequest(model.getDotStringChoice()));
+        observable.onNext(new Message.EmitGraphFocus(model.getGraphFocus()));
     }
 
     private void updateImageVisibility() {
@@ -198,7 +198,7 @@ public class GraphViewController extends Controller<GraphViewModel> {
 
     private void updateLabels() {
         for (GraphViewModel.GraphChoice graphChoice : GraphViewModel.GraphChoice.values()) {
-            if (graphChoice == model.getDotStringChoice()) {
+            if (graphChoice == model.getGraphFocus()) {
                 zoomViewObservable.onNext(new Message.ZoomViewRecv(graphChoice, new GraphZoomViewController.Message.RecvLabelFormat("-fx-font-weight: bold;", true)));
             } else {
                 zoomViewObservable.onNext(new Message.ZoomViewRecv(graphChoice, new GraphZoomViewController.Message.RecvLabelFormat("-fx-font-weight: normal;", false)));
@@ -246,10 +246,10 @@ public class GraphViewController extends Controller<GraphViewModel> {
         public static abstract class EmitBase {
         }
 
-        public static final class EmitDotStringRequest extends EmitBase {
+        public static final class EmitGraphFocus extends EmitBase {
             public final GraphViewModel.GraphChoice graphChoice;
 
-            public EmitDotStringRequest(GraphViewModel.GraphChoice graphChoice) {
+            public EmitGraphFocus(GraphViewModel.GraphChoice graphChoice) {
                 this.graphChoice = graphChoice;
             }
         }
@@ -267,11 +267,11 @@ public class GraphViewController extends Controller<GraphViewModel> {
         public static abstract class RecvBase {
         }
 
-        public static final class ReceiveDotString extends RecvBase {
-            public final String dotString;
+        public static final class ReceiveText extends RecvBase {
+            public final String text;
 
-            public ReceiveDotString(String dotString) {
-                this.dotString = dotString;
+            public ReceiveText(String text) {
+                this.text = text;
             }
         }
 

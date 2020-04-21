@@ -2,11 +2,11 @@ package RegexFA.Model;
 
 public class GraphViewModel extends Model {
     private GraphPaneChoice graphPaneChoice;
-    private GraphChoice dotStringChoice;
+    private GraphChoice graphFocus;
 
     public GraphViewModel() {
         graphPaneChoice = GraphPaneChoice.ALL;
-        dotStringChoice = GraphChoice.Graph1;
+        graphFocus = GraphChoice.Graph1;
     }
 
     public GraphPaneChoice getGraphPaneChoice() {
@@ -17,12 +17,12 @@ public class GraphViewModel extends Model {
         this.graphPaneChoice = graphPaneChoice;
     }
 
-    public GraphChoice getDotStringChoice() {
-        return dotStringChoice;
+    public GraphChoice getGraphFocus() {
+        return graphFocus;
     }
 
-    public void setDotStringChoice(GraphChoice dotStringChoice) {
-        this.dotStringChoice = dotStringChoice;
+    public void setGraphFocus(GraphChoice graphFocus) {
+        this.graphFocus = graphFocus;
     }
 
     public enum GraphPaneChoice {

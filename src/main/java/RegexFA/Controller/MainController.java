@@ -201,12 +201,14 @@ public class MainController extends Controller<MainModel> {
     }
 
     private void handle(GraphViewController.Message.EmitBase emitBase) {
-        if (emitBase instanceof GraphViewController.Message.EmitDotStringRequest) {
-            GraphViewController.Message.EmitDotStringRequest msg = (GraphViewController.Message.EmitDotStringRequest) emitBase;
+        if (emitBase instanceof GraphViewController.Message.EmitGraphFocus) {
+            GraphViewController.Message.EmitGraphFocus msg = (GraphViewController.Message.EmitGraphFocus) emitBase;
             handle(msg);
         } else if (emitBase instanceof GraphViewController.Message.EmitImageSubscription) {
             GraphViewController.Message.EmitImageSubscription msg = (GraphViewController.Message.EmitImageSubscription) emitBase;
             handle(msg);
+        } else {
+            throw new IllegalArgumentException();
         }
     }
 
@@ -215,7 +217,7 @@ public class MainController extends Controller<MainModel> {
         updateImages(true, msg.graphChoice);
     }
 
-    private void handle(GraphViewController.Message.EmitDotStringRequest msg) {
+    private void handle(GraphViewController.Message.EmitGraphFocus msg) {
         dotStringChoice = msg.graphChoice;
         updateDotString();
     }
@@ -226,7 +228,7 @@ public class MainController extends Controller<MainModel> {
         } else if (emitBase instanceof TextInputViewController.Message.EmitStartEditing) {
             handle(choice, (TextInputViewController.Message.EmitStartEditing) emitBase);
         } else {
-            throw new IllegalStateException();
+            throw new IllegalArgumentException();
         }
     }
 
@@ -244,7 +246,6 @@ public class MainController extends Controller<MainModel> {
                                         textInputView_regexController.getObserver().onNext(new TextInputViewController.Message.RecvToggle(msg.count));
                                     }
                             );
-
                         }
                 );
                 break;
@@ -258,7 +259,6 @@ public class MainController extends Controller<MainModel> {
                                         textInputView_testStringController.getObserver().onNext(new TextInputViewController.Message.RecvToggle(msg.count));
                                     }
                             );
-
                         }
                 );
                 break;
@@ -336,9 +336,9 @@ public class MainController extends Controller<MainModel> {
 
     private void updateDotString() {
         if (model.isRegexSuccess()) {
-            graphViewController.getObserver().onNext(new GraphViewController.Message.ReceiveDotString(model.getDotString(dotStringChoice)));
+            graphViewController.getObserver().onNext(new GraphViewController.Message.ReceiveText(model.getDotString(dotStringChoice)));
         } else {
-            graphViewController.getObserver().onNext(new GraphViewController.Message.ReceiveDotString(""));
+            graphViewController.getObserver().onNext(new GraphViewController.Message.ReceiveText(""));
         }
     }
 

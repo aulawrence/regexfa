@@ -125,7 +125,7 @@ public class TextInputViewController extends Controller<TextInputModel> {
         } else if (recvBase instanceof Message.RecvEnabled) {
             handle((Message.RecvEnabled) recvBase);
         } else {
-            throw new IllegalStateException();
+            throw new IllegalArgumentException();
         }
     }
 
