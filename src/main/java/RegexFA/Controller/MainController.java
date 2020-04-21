@@ -242,7 +242,6 @@ public class MainController extends Controller<MainModel> {
                                     () -> {
                                         updateRegex();
                                         updateDotString();
-                                        updateImages();
                                         textInputView_regexController.getObserver().onNext(new TextInputViewController.Message.RecvToggle(msg.count));
                                     }
                             );

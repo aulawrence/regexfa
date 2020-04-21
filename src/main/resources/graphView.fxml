@@ -2,13 +2,18 @@
 
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
 
 <AnchorPane xmlns="http://javafx.com/javafx/10.0.2-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="RegexFA.Controller.GraphViewController">
     <children>
         <AnchorPane AnchorPane.leftAnchor="12.0" AnchorPane.rightAnchor="12.0" AnchorPane.topAnchor="0.0">
             <children>
                 <Label fx:id="label" text="Label" AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="0.0" />
-                <TextArea fx:id="textArea" editable="false" prefHeight="72.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="18.0" />
+                <TextArea fx:id="textArea" editable="false" prefHeight="72.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="18.0">
+                    <font>
+                        <Font name="Monospaced Regular" size="11.0" />
+                    </font>
+                </TextArea>
             </children>
         </AnchorPane>
         <GridPane fx:id="gridPane" prefHeight="360.0" prefWidth="800.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="90.0">
