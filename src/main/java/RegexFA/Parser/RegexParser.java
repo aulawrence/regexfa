@@ -416,8 +416,11 @@ public class RegexParser {
             System.out.println(preprocessQuantifier(pattern2, alphabet));
             NFAGraph g2 = toGraph(pattern2, alphabet);
             DFAGraph h2 = g2.toDFA().minimize();
+            DFAGraph h3 = DFAGraph.xor(h1, h2).toDFA().minimize();
 
-            DFAGraph h3 = DFAGraph.xor(h1, h2).minimize();
+            h1.clearNodeSet();
+            h2.clearNodeSet();
+            h3.clearNodeSet();
 
             Graph.getImage(graphViz, g1.toDotString(), "g1");
             Graph.getImage(graphViz, g2.toDotString(), "g2");

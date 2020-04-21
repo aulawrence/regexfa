@@ -6,7 +6,7 @@ import java.util.stream.Collectors;
 public class Node {
     private final Graph<?> graph;
     private final String id;
-    private final Set<Node> nodeSet;
+    private Set<Node> nodeSet;
     private boolean accept;
 
     public Node(Graph<?> graph, String id) {
@@ -30,6 +30,10 @@ public class Node {
 
     public Set<Node> getNodeSet() {
         return nodeSet;
+    }
+
+    protected void clearNodeSet(){
+        this.nodeSet = null;
     }
 
     public boolean isAccept() {

@@ -51,6 +51,12 @@ public class DFAGraph extends Graph<DFANode> {
         edgeDotStringMemo = null;
     }
 
+    public void clearNodeSet(){
+        for (DFANode node: nodeList){
+            node.clearNodeSet();
+        }
+    }
+
     public String toDotString() {
         return toDotString(false);
     }
@@ -147,7 +153,7 @@ public class DFAGraph extends Graph<DFANode> {
         return not(this);
     }
 
-    public DFAGraph xor(DFAGraph other) {
+    public NFAGraph xor(DFAGraph other) {
         return xor(this, other);
     }
 
@@ -292,13 +298,13 @@ public class DFAGraph extends Graph<DFANode> {
         return negDFA;
     }
 
-    public static DFAGraph xor(DFAGraph g1, DFAGraph g2) {
+    public static NFAGraph xor(DFAGraph g1, DFAGraph g2) {
         assert g1.alphabet == g2.alphabet;
         DFAGraph g1n = g1.negate();
         DFAGraph g2n = g2.negate();
         DFAGraph alpha = NFAGraph.or(g1.toNFA(), g2n.toNFA()).toDFA().negate();
         DFAGraph beta = NFAGraph.or(g1n.toNFA(), g2.toNFA()).toDFA().negate();
-        return NFAGraph.or(alpha.toNFA(), beta.toNFA()).toDFA();
+        return NFAGraph.or(alpha.toNFA(), beta.toNFA());
     }
 
     public static NFAGraph toNFA(DFAGraph g) {
@@ -308,7 +314,7 @@ public class DFAGraph extends Graph<DFANode> {
     // TODO Maybe add stream of discrepancies
 
     public static Optional<String> getFirstDiscrepancyMin(DFAGraph g1, DFAGraph g2) {
-        DFAGraph result = xor(g1, g2).minimize();
+        DFAGraph result = xor(g1, g2).toDFA().minimize();
         Alphabet alphabet = result.getAlphabet();
         HashMap<DFANode, String> stringMap = new HashMap<>();
         Queue<DFANode> nodeQueue = new ArrayDeque<>();
