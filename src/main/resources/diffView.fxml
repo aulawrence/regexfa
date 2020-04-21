@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+
+<AnchorPane prefHeight="600.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/10.0.2-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="RegexFA.Controller.DiffViewController">
+    <children>
+        <AnchorPane AnchorPane.leftAnchor="12.0" AnchorPane.rightAnchor="12.0" AnchorPane.topAnchor="12.0">
+            <children>
+                <Label text="Alphabet:" AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="5.0" />
+                <ChoiceBox fx:id="choiceBox_alphabet" prefWidth="150.0" AnchorPane.leftAnchor="150.0" AnchorPane.topAnchor="0.0" />
+            </children>
+        </AnchorPane>
+        <fx:include fx:id="textInputView_regex1" source="textInputView.fxml" AnchorPane.leftAnchor="12.0" AnchorPane.rightAnchor="12.0" AnchorPane.topAnchor="60.0" />
+        <fx:include fx:id="textInputView_regex2" source="textInputView.fxml" AnchorPane.leftAnchor="12.0" AnchorPane.rightAnchor="12.0" AnchorPane.topAnchor="108.0" />
+        <AnchorPane AnchorPane.leftAnchor="12.0" AnchorPane.rightAnchor="12.0" AnchorPane.topAnchor="150.0">
+            <children>
+                <TextFlow fx:id="textFlow_testString" focusTraversable="true" onKeyPressed="#onKeyPressed_textFlowTestString" onKeyReleased="#onKeyReleased_textFlowTestString" styleClass="text-flow" visible="false" AnchorPane.bottomAnchor="17.0" AnchorPane.leftAnchor="150.0" AnchorPane.rightAnchor="60.0" AnchorPane.topAnchor="0.0">
+                    <padding>
+                        <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+                    </padding>
+                </TextFlow>
+                <fx:include fx:id="textInputView_testString" source="textInputView.fxml" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+            </children>
+        </AnchorPane>
+        <fx:include fx:id="graphView" source="graphView.fxml" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="198.0" />
+    </children>
+</AnchorPane>
