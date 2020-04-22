@@ -2,10 +2,10 @@ package RegexFA.Controller;
 
 import RegexFA.Alphabet;
 import RegexFA.Model.RegexFAModel;
+import RegexFA.UIThreadExecutor;
 import io.reactivex.rxjava3.annotations.NonNull;
 import io.reactivex.rxjava3.core.Observer;
 import io.reactivex.rxjava3.disposables.Disposable;
-import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.ChoiceBox;
@@ -20,6 +20,8 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.ResourceBundle;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -47,6 +49,7 @@ public class RegexFAController extends Controller<RegexFAModel> {
 
     private final ArrayList<Text> testStringArrayList;
     private final ExecutorService executor;
+    private final Executor uiThreadExecutor;
 
     private final HashMap<GraphChoice, Path> imagePath;
     private final HashMap<GraphChoice, Boolean> imageSubscription;
@@ -57,6 +60,7 @@ public class RegexFAController extends Controller<RegexFAModel> {
         super(new RegexFAModel());
         testStringArrayList = new ArrayList<>();
         executor = Executors.newFixedThreadPool(3);
+        uiThreadExecutor = new UIThreadExecutor();
         imagePath = new HashMap<>();
         imageSubscription = new HashMap<>();
         for (GraphChoice graphChoice : GraphChoice.values()) {
@@ -241,31 +245,25 @@ public class RegexFAController extends Controller<RegexFAModel> {
     private void handle(TextChoice choice, TextInputController.Message.EmitSubmit msg) {
         switch (choice) {
             case Regex:
-                executor.execute(
+                CompletableFuture.runAsync(
+                        () -> model.setRegex(msg.string)
+                        , executor).thenRunAsync(
                         () -> {
-                            model.setRegex(msg.string);
-                            Platform.runLater(
-                                    () -> {
-                                        updateRegex();
-                                        updateDotString();
-                                        textInputView_regexController.getObserver().onNext(new TextInputController.Message.RecvToggle(msg.count));
-                                    }
-                            );
+                            updateRegex();
+                            updateDotString();
+                            textInputView_regexController.getObserver().onNext(new TextInputController.Message.RecvToggle(msg.count));
                         }
-                );
+                        , uiThreadExecutor);
                 break;
             case TestString:
-                executor.execute(
+                CompletableFuture.runAsync(
+                        () -> model.setTestString(msg.string)
+                        , executor).thenRunAsync(
                         () -> {
-                            model.setTestString(msg.string);
-                            Platform.runLater(
-                                    () -> {
-                                        updateTestString();
-                                        textInputView_testStringController.getObserver().onNext(new TextInputController.Message.RecvToggle(msg.count));
-                                    }
-                            );
+                            updateTestString();
+                            textInputView_testStringController.getObserver().onNext(new TextInputController.Message.RecvToggle(msg.count));
                         }
-                );
+                        , uiThreadExecutor);
                 break;
             default:
                 throw new IllegalStateException();
@@ -356,44 +354,43 @@ public class RegexFAController extends Controller<RegexFAModel> {
     private void updateImages(boolean nullOnly, GraphChoice graphChoice) {
         if (model.isRegexSuccess()) {
             if (imageSubscription.get(graphChoice) && (!nullOnly || imagePath.get(graphChoice) == null)) {
-                executor.execute(
-                        () -> {
-                            imagePath.put(graphChoice, model.getImage(graphChoice, graphChoice.toString()));
-                            Platform.runLater(
-                                    () -> graphPanelController.getObserver().onNext(new GraphPanelController.Message.ReceiveImage(graphChoice, imagePath.get(graphChoice)))
-                            );
-                        }
-                );
+                CompletableFuture.runAsync(
+                        () -> imagePath.put(graphChoice, model.getImage(graphChoice, graphChoice.toString()))
+                        , executor).thenRunAsync(
+                        () -> graphPanelController.getObserver().onNext(new GraphPanelController.Message.ReceiveImage(graphChoice, imagePath.get(graphChoice)))
+                        , uiThreadExecutor);
             } else if (!nullOnly && !imageSubscription.get(graphChoice)) {
                 imagePath.put(graphChoice, null);
-                Platform.runLater(
-                        () -> graphPanelController.getObserver().onNext(new GraphPanelController.Message.ReceiveImage(graphChoice, null))
-                );
+                graphPanelController.getObserver().onNext(new GraphPanelController.Message.ReceiveImage(graphChoice, null));
             }
         } else {
             imagePath.put(graphChoice, null);
-            Platform.runLater(
-                    () -> graphPanelController.getObserver().onNext(new GraphPanelController.Message.ReceiveImage(graphChoice, null))
-            );
+            graphPanelController.getObserver().onNext(new GraphPanelController.Message.ReceiveImage(graphChoice, null));
         }
     }
 
     public void loadExample() {
-        model.setAlphabet(Alphabet.Binary);
-        model.setRegex(".*1001");
-        updateRegex();
-        executor.execute(
-                () -> {
-                    model.setTestString("1001001");
-                    Platform.runLater(
-                            () -> {
-                                updateTestString();
-                                updateDotString();
-                                updateImages();
-                            }
-                    );
-                }
-        );
+        choiceBox_alphabet.getSelectionModel().select(Alphabet.Binary);
+        CompletableFuture
+                .runAsync(
+                        () -> {
+                            model.setAlphabet(Alphabet.Binary);
+                            model.setRegex(".*1001");
+                        }, executor)
+                .thenRunAsync(
+                        () -> {
+                            updateRegex();
+                        }, uiThreadExecutor)
+                .thenRunAsync(
+                        () -> {
+                            model.setTestString("1001001");
+                        }, executor)
+                .thenRunAsync(
+                        () -> {
+                            updateTestString();
+                            updateDotString();
+                            updateImages();
+                        }, uiThreadExecutor);
     }
 
     public void shutdown() {

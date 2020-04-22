@@ -3,10 +3,10 @@ package RegexFA.Controller;
 import RegexFA.Alphabet;
 import RegexFA.Model.GraphPanelModel;
 import RegexFA.Model.RegexDiffModel;
+import RegexFA.UIThreadExecutor;
 import io.reactivex.rxjava3.annotations.NonNull;
 import io.reactivex.rxjava3.core.Observer;
 import io.reactivex.rxjava3.disposables.Disposable;
-import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.ChoiceBox;
@@ -21,12 +21,15 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.ResourceBundle;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class RegexDiffController extends Controller<RegexDiffModel> {
     private final ArrayList<Text> testStringArrayList;
     private final ExecutorService executor;
+    private final Executor uiThreadExecutor;
     private final HashMap<GraphPanelModel.GraphChoice, Path> imagePathMap;
     private final HashMap<GraphPanelModel.GraphChoice, Boolean> imageSubscriptionMap;
     @FXML
@@ -54,6 +57,7 @@ public class RegexDiffController extends Controller<RegexDiffModel> {
         super(new RegexDiffModel());
         testStringArrayList = new ArrayList<>();
         executor = Executors.newFixedThreadPool(3);
+        uiThreadExecutor = new UIThreadExecutor();
         imagePathMap = new HashMap<>();
         imageSubscriptionMap = new HashMap<>();
         for (GraphPanelModel.GraphChoice graphChoice : GraphPanelModel.GraphChoice.values()) {
@@ -245,46 +249,33 @@ public class RegexDiffController extends Controller<RegexDiffModel> {
     private void handle(TextChoice choice, TextInputController.Message.EmitSubmit msg) {
         switch (choice) {
             case Regex1:
-                executor.execute(
+                CompletableFuture.runAsync(
+                        () -> model.setRegex1(msg.string)
+                        , executor).thenRunAsync(
                         () -> {
-                            model.setRegex1(msg.string);
-                            Platform.runLater(
-                                    () -> {
-                                        updateRegex1();
-                                        updateText();
-                                        textInputView_regex1Controller.getObserver().onNext(new TextInputController.Message.RecvToggle(msg.count));
-                                    }
-                            );
-                        }
-                );
+                            updateRegex1();
+                            updateText();
+                            textInputView_regex1Controller.getObserver().onNext(new TextInputController.Message.RecvToggle(msg.count));
+                        }, uiThreadExecutor);
                 break;
             case Regex2:
-                executor.execute(
+                CompletableFuture.runAsync(
+                        () -> model.setRegex2(msg.string)
+                        , executor).thenRunAsync(
                         () -> {
-                            model.setRegex2(msg.string);
-                            Platform.runLater(
-                                    () -> {
-                                        updateRegex2();
-                                        updateText();
-                                        textInputView_regex2Controller.getObserver().onNext(new TextInputController.Message.RecvToggle(msg.count));
-                                    }
-                            );
-                        }
-                );
+                            updateRegex2();
+                            updateText();
+                            textInputView_regex2Controller.getObserver().onNext(new TextInputController.Message.RecvToggle(msg.count));
+                        }, uiThreadExecutor);
                 break;
             case TestString:
-                executor.execute(
+                CompletableFuture.runAsync(
+                        () -> model.setTestString(msg.string)
+                        , executor).thenRunAsync(
                         () -> {
-                            model.setTestString(msg.string);
-                            Platform.runLater(
-                                    () -> {
-                                        updateTestString();
-                                        textInputView_testStringController.getObserver().onNext(new TextInputController.Message.RecvToggle(msg.count));
-                                    }
-                            );
-
-                        }
-                );
+                            updateTestString();
+                            textInputView_testStringController.getObserver().onNext(new TextInputController.Message.RecvToggle(msg.count));
+                        }, uiThreadExecutor);
                 break;
             default:
                 throw new IllegalStateException();
@@ -388,25 +379,18 @@ public class RegexDiffController extends Controller<RegexDiffModel> {
     private void updateImages(boolean nullOnly, GraphPanelModel.GraphChoice graphChoice) {
         if (model.isGraphSuccess()) {
             if (imageSubscriptionMap.get(graphChoice) && (!nullOnly || imagePathMap.get(graphChoice) == null)) {
-                executor.execute(
-                        () -> {
-                            imagePathMap.put(graphChoice, model.getImage(graphChoice, graphChoice.toString()));
-                            Platform.runLater(
-                                    () -> graphPanelController.getObserver().onNext(new GraphPanelController.Message.ReceiveImage(graphChoice, imagePathMap.get(graphChoice)))
-                            );
-                        }
-                );
+                CompletableFuture.runAsync(
+                        () -> imagePathMap.put(graphChoice, model.getImage(graphChoice, graphChoice.toString()))
+                        , executor).thenRunAsync(
+                        () -> graphPanelController.getObserver().onNext(new GraphPanelController.Message.ReceiveImage(graphChoice, imagePathMap.get(graphChoice)))
+                        , uiThreadExecutor);
             } else if (!nullOnly && !imageSubscriptionMap.get(graphChoice)) {
                 imagePathMap.put(graphChoice, null);
-                Platform.runLater(
-                        () -> graphPanelController.getObserver().onNext(new GraphPanelController.Message.ReceiveImage(graphChoice, null))
-                );
+                graphPanelController.getObserver().onNext(new GraphPanelController.Message.ReceiveImage(graphChoice, null));
             }
         } else {
             imagePathMap.put(graphChoice, null);
-            Platform.runLater(
-                    () -> graphPanelController.getObserver().onNext(new GraphPanelController.Message.ReceiveImage(graphChoice, null))
-            );
+            graphPanelController.getObserver().onNext(new GraphPanelController.Message.ReceiveImage(graphChoice, null));
         }
     }
 
@@ -426,23 +410,29 @@ public class RegexDiffController extends Controller<RegexDiffModel> {
     }
 
     public void loadExample() {
-        model.setAlphabet(Alphabet.Binary);
-        model.setRegex1(".*(10)+(01)+");
-        model.setRegex2("(10)+(01)+.*");
-        updateRegex1();
-        updateRegex2();
-        executor.execute(
-                () -> {
-                    model.setTestString("01001");
-                    Platform.runLater(
-                            () -> {
-                                updateTestString();
-                                updateText();
-                                updateImages();
-                            }
-                    );
-                }
-        );
+        choiceBox_alphabet.getSelectionModel().select(Alphabet.Binary);
+        CompletableFuture
+                .runAsync(
+                        () -> {
+                            model.setAlphabet(Alphabet.Binary);
+                            model.setRegex1(".*(10)+(01)+");
+                            model.setRegex2("(10)+(01)+.*");
+                        }, executor)
+                .thenRunAsync(
+                        () -> {
+                            updateRegex1();
+                            updateRegex2();
+                        }, uiThreadExecutor)
+                .thenRunAsync(
+                        () -> {
+                            model.setTestString("01001");
+                        }, executor)
+                .thenRunAsync(
+                        () -> {
+                            updateTestString();
+                            updateText();
+                            updateImages();
+                        }, uiThreadExecutor);
     }
 
     public void shutdown() {
