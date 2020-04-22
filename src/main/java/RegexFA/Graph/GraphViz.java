@@ -51,9 +51,13 @@ public class GraphViz implements Closeable {
         builder.directory(dir.toFile());
         builder.redirectOutput(pngPath.toFile());
         Process process = builder.start();
-        boolean exitCleanly = process.waitFor(15, TimeUnit.SECONDS);
-        if (!exitCleanly) {
-            System.err.printf("Process running dot exited with error code %d.%n", process.exitValue());
+        boolean exitInTime = process.waitFor(15, TimeUnit.SECONDS);
+        if (!exitInTime) {
+            System.err.println("Error: Process running dot did not exit within 15 seconds.%n");
+            return null;
+        }
+        if (process.exitValue() != 0) {
+            System.err.printf("Error: Process running dot exited with non-zero error code %d.%n", process.exitValue());
             return null;
         }
         return pngPath;
@@ -66,13 +70,13 @@ public class GraphViz implements Closeable {
                 try {
                     Files.deleteIfExists(file);
                 } catch (IOException e) {
-                    System.err.printf("Cannot delete file: %s.%n", e.getMessage());
+                    System.err.printf("Info: Cannot delete temp file: %s.%n", e.getMessage());
                 }
             }
             try {
                 Files.delete(dir);
             } catch (IOException e) {
-                System.err.printf("Cannot delete directory: %s.%n", e.getMessage());
+                System.err.printf("Info: Cannot delete temp directory: %s.%n", e.getMessage());
             }
         }
     }
