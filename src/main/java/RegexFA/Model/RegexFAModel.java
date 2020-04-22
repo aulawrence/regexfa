@@ -127,6 +127,10 @@ public class RegexFAModel extends Model implements Closeable {
         this.alphabet = alphabet;
     }
 
+    public Alphabet getAlphabet() {
+        return alphabet;
+    }
+
     public synchronized String getRegex() {
         return regex;
     }

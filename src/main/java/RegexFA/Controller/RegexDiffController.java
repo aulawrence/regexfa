@@ -72,12 +72,7 @@ public class RegexDiffController extends Controller<RegexDiffModel> {
         choiceBox_alphabet.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
             if (newValue != oldValue) {
                 model.setAlphabet(newValue);
-                if (!model.getRegex1().equals("")) {
-                    textInputView_regex1Controller.getObserver().onNext(new TextInputController.Message.RecvToggle(2));
-                }
-                if (!model.getRegex2().equals("")) {
-                    textInputView_regex2Controller.getObserver().onNext(new TextInputController.Message.RecvToggle(2));
-                }
+                updateAlphabet(true);
             }
         });
         choiceBox_alphabet.getSelectionModel().select(Alphabet.Binary);
@@ -253,7 +248,7 @@ public class RegexDiffController extends Controller<RegexDiffModel> {
                         () -> model.setRegex1(msg.string)
                         , executor).thenRunAsync(
                         () -> {
-                            updateRegex1();
+                            updateRegex1(true);
                             updateText();
                             textInputView_regex1Controller.getObserver().onNext(new TextInputController.Message.RecvToggle(msg.count));
                         }, uiThreadExecutor);
@@ -263,7 +258,7 @@ public class RegexDiffController extends Controller<RegexDiffModel> {
                         () -> model.setRegex2(msg.string)
                         , executor).thenRunAsync(
                         () -> {
-                            updateRegex2();
+                            updateRegex2(true);
                             updateText();
                             textInputView_regex2Controller.getObserver().onNext(new TextInputController.Message.RecvToggle(msg.count));
                         }, uiThreadExecutor);
@@ -317,12 +312,23 @@ public class RegexDiffController extends Controller<RegexDiffModel> {
         updateImages(true, msg.graphChoice);
     }
 
-    private void updateRegex1() {
+    private void updateAlphabet(boolean toggleRegex) {
+        choiceBox_alphabet.getSelectionModel().select(model.getAlphabet());
+        if (toggleRegex && !model.getRegex1().equals("")) {
+            textInputView_regex1Controller.getObserver().onNext(new TextInputController.Message.RecvToggle(2));
+        }
+        if (toggleRegex && !model.getRegex2().equals("")) {
+            textInputView_regex2Controller.getObserver().onNext(new TextInputController.Message.RecvToggle(2));
+        }
+    }
+
+    private void updateRegex1(boolean toggleTestString) {
         if (model.isRegex1Success()) {
             textInputView_regex1Controller.getObserver().onNext(new TextInputController.Message.RecvResult(true, model.getRegex1()));
             if (model.isGraphSuccess()) {
                 textInputView_testStringController.getObserver().onNext(new TextInputController.Message.RecvEnabled(true));
-                textInputView_testStringController.getObserver().onNext(new TextInputController.Message.RecvToggle(2));
+                if (toggleTestString)
+                    textInputView_testStringController.getObserver().onNext(new TextInputController.Message.RecvToggle(2));
             }
         } else {
             textInputView_regex1Controller.getObserver().onNext(new TextInputController.Message.RecvResult(false, model.getRegex1ErrMsg()));
@@ -330,12 +336,13 @@ public class RegexDiffController extends Controller<RegexDiffModel> {
         }
     }
 
-    private void updateRegex2() {
+    private void updateRegex2(boolean toggleTestString) {
         if (model.isRegex2Success()) {
             textInputView_regex2Controller.getObserver().onNext(new TextInputController.Message.RecvResult(true, model.getRegex2()));
             if (model.isGraphSuccess()) {
                 textInputView_testStringController.getObserver().onNext(new TextInputController.Message.RecvEnabled(true));
-                textInputView_testStringController.getObserver().onNext(new TextInputController.Message.RecvToggle(2));
+                if (toggleTestString)
+                    textInputView_testStringController.getObserver().onNext(new TextInputController.Message.RecvToggle(2));
             }
         } else {
             textInputView_regex2Controller.getObserver().onNext(new TextInputController.Message.RecvResult(false, model.getRegex2ErrMsg()));
@@ -410,27 +417,21 @@ public class RegexDiffController extends Controller<RegexDiffModel> {
     }
 
     public void loadExample() {
-        choiceBox_alphabet.getSelectionModel().select(Alphabet.Binary);
         CompletableFuture
                 .runAsync(
                         () -> {
                             model.setAlphabet(Alphabet.Binary);
                             model.setRegex1(".*(10)+(01)+");
                             model.setRegex2("(10)+(01)+.*");
-                        }, executor)
-                .thenRunAsync(
-                        () -> {
-                            updateRegex1();
-                            updateRegex2();
-                        }, uiThreadExecutor)
-                .thenRunAsync(
-                        () -> {
                             model.setTestString("01001");
                         }, executor)
                 .thenRunAsync(
                         () -> {
-                            updateTestString();
+                            updateAlphabet(false);
+                            updateRegex1(false);
+                            updateRegex2(false);
                             updateText();
+                            updateTestString();
                             updateImages();
                         }, uiThreadExecutor);
     }

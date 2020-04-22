@@ -75,9 +75,7 @@ public class RegexFAController extends Controller<RegexFAModel> {
         choiceBox_alphabet.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
             if (newValue != oldValue) {
                 model.setAlphabet(newValue);
-                if (!model.getRegex().equals("")) {
-                    textInputView_regexController.getObserver().onNext(new TextInputController.Message.RecvToggle(2));
-                }
+                updateAlphabet(true);
             }
         });
         choiceBox_alphabet.getSelectionModel().select(Alphabet.Binary);
@@ -249,7 +247,7 @@ public class RegexFAController extends Controller<RegexFAModel> {
                         () -> model.setRegex(msg.string)
                         , executor).thenRunAsync(
                         () -> {
-                            updateRegex();
+                            updateRegex(true);
                             updateDotString();
                             textInputView_regexController.getObserver().onNext(new TextInputController.Message.RecvToggle(msg.count));
                         }
@@ -284,11 +282,19 @@ public class RegexFAController extends Controller<RegexFAModel> {
         }
     }
 
-    private void updateRegex() {
+    private void updateAlphabet(boolean toogleRegex) {
+        choiceBox_alphabet.getSelectionModel().select(model.getAlphabet());
+        if (toogleRegex && !model.getRegex().equals("")) {
+            textInputView_regexController.getObserver().onNext(new TextInputController.Message.RecvToggle(2));
+        }
+    }
+
+    private void updateRegex(boolean toggleTestString) {
         if (model.isRegexSuccess()) {
             textInputView_regexController.getObserver().onNext(new TextInputController.Message.RecvResult(true, model.getRegex()));
             textInputView_testStringController.getObserver().onNext(new TextInputController.Message.RecvEnabled(true));
-            textInputView_testStringController.getObserver().onNext(new TextInputController.Message.RecvToggle(2));
+            if (toggleTestString)
+                textInputView_testStringController.getObserver().onNext(new TextInputController.Message.RecvToggle(2));
         } else {
             textInputView_regexController.getObserver().onNext(new TextInputController.Message.RecvResult(false, model.getRegexErrMsg()));
             textInputView_testStringController.getObserver().onNext(new TextInputController.Message.RecvEnabled(false));
@@ -370,23 +376,17 @@ public class RegexFAController extends Controller<RegexFAModel> {
     }
 
     public void loadExample() {
-        choiceBox_alphabet.getSelectionModel().select(Alphabet.Binary);
         CompletableFuture
                 .runAsync(
                         () -> {
                             model.setAlphabet(Alphabet.Binary);
                             model.setRegex(".*1001");
-                        }, executor)
-                .thenRunAsync(
-                        () -> {
-                            updateRegex();
-                        }, uiThreadExecutor)
-                .thenRunAsync(
-                        () -> {
                             model.setTestString("1001001");
                         }, executor)
                 .thenRunAsync(
                         () -> {
+                            updateAlphabet(false);
+                            updateRegex(false);
                             updateTestString();
                             updateDotString();
                             updateImages();
