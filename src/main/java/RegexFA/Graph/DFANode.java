@@ -2,21 +2,43 @@ package RegexFA.Graph;
 
 import RegexFA.Alphabet;
 
+import java.util.Collections;
 import java.util.Set;
+import java.util.stream.Collectors;
 
-public class DFANode extends Node {
+public class DFANode extends Node<DFAGraph> {
     private final Alphabet alphabet;
     private final DFANode[] edges;
+    private Set<Node<?>> nodeSet;
+    private boolean accept;
 
 
-    public DFANode(Graph<DFANode> graph, String id) {
+    public DFANode(DFAGraph graph, String id) {
         this(graph, id, null);
     }
 
-    public DFANode(Graph<DFANode> graph, String id, Set<Node> nodeSet) {
-        super(graph, id, nodeSet);
+    public DFANode(DFAGraph graph, String id, Set<Node<?>> nodeSet) {
+        super(graph, id);
         this.alphabet = graph.getAlphabet();
         this.edges = new DFANode[alphabet.n];
+        this.nodeSet = nodeSet == null ? null : Collections.unmodifiableSet(nodeSet);
+        this.accept = false;
+    }
+
+    public Set<Node<?>> getNodeSet() {
+        return nodeSet;
+    }
+
+    public void clearNodeSet() {
+        this.nodeSet = null;
+    }
+
+    public boolean isAccept() {
+        return accept;
+    }
+
+    public void setAccept(boolean accept) {
+        this.accept = accept;
     }
 
     public void setEdge(char ch, DFANode node) {
@@ -29,6 +51,18 @@ public class DFANode extends Node {
 
     public DFANode getEdge(int i) {
         return edges[i];
+    }
+
+    public String toRepr() {
+        StringBuilder sb = new StringBuilder();
+        if (nodeSet == null) {
+            sb.append(getId());
+        } else {
+            sb.append("{");
+            sb.append(this.nodeSet.stream().map(Node::toRepr).collect(Collectors.joining(", ")));
+            sb.append("}");
+        }
+        return sb.toString();
     }
 
     @Override

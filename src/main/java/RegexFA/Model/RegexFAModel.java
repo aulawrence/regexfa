@@ -22,7 +22,7 @@ public class RegexFAModel extends Model implements Closeable {
     private boolean testStringSuccess;
     private String testStringErrorMsg;
     private int testStringPos;
-    private final ArrayList<Node> testStringDFANodes;
+    private final ArrayList<DFANode> testStringDFANodes;
     private final ArrayList<Boolean> testStringAcceptance;
     private NFAGraph nfa;
     private DFAGraph dfa;
@@ -89,7 +89,7 @@ public class RegexFAModel extends Model implements Closeable {
     }
 
     public synchronized String getDotString(GraphPanelModel.GraphChoice graphChoice) {
-        Node dfaNode = null;
+        DFANode dfaNode = null;
         if (testStringPos + 1 < testStringDFANodes.size()) {
             dfaNode = testStringDFANodes.get(testStringPos + 1);
         }

@@ -30,9 +30,9 @@ public class DFAGraph extends Graph<DFANode> {
         return node;
     }
 
-    public DFANode addNode(Set<Node> nodeSet) {
+    public DFANode addNode(Set<? extends Node<?>> nodeSet) {
         String idString = getIDString(getNextID());
-        DFANode node = new DFANode(this, idString, nodeSet);
+        DFANode node = new DFANode(this, idString, new HashSet<>(nodeSet));
         this.nodeList.add(node);
         return node;
     }
@@ -66,11 +66,11 @@ public class DFAGraph extends Graph<DFANode> {
         return toDotString((node) -> false, bgTransparent);
     }
 
-    public String toDotString_colorDFA(Node dfaNode, boolean bgTransparent) {
+    public String toDotString_colorDFA(DFANode dfaNode, boolean bgTransparent) {
         return toDotString((node) -> dfaNode != null && node == dfaNode, bgTransparent);
     }
 
-    public String toDotString_colorMinDFA(Node dfaNode, boolean bgTransparent) {
+    public String toDotString_colorMinDFA(DFANode dfaNode, boolean bgTransparent) {
         return toDotString((node) -> dfaNode != null && node.getNodeSet().contains(dfaNode), bgTransparent);
     }
 
@@ -164,9 +164,9 @@ public class DFAGraph extends Graph<DFANode> {
 
     public static DFAGraph minimize(DFAGraph dfaGraph) {
         Alphabet alphabet = dfaGraph.getAlphabet();
-        Map<Node, Integer> prevPartitions;
-        Map<Node, Integer> currPartitions = new HashMap<>();
-        for (Node node : dfaGraph.getNodeList()) {
+        Map<DFANode, Integer> prevPartitions;
+        Map<DFANode, Integer> currPartitions = new HashMap<>();
+        for (DFANode node : dfaGraph.getNodeList()) {
             if (node.isAccept()) {
                 currPartitions.put(node, 0);
             } else {
@@ -217,10 +217,10 @@ public class DFAGraph extends Graph<DFANode> {
         DFAGraph graph = new DFAGraph(alphabet);
         Map<Integer, DFANode> newNodes = new HashMap<>();
         for (int p = 0; p < currN; p++) {
-            Set<Node> nodeSet = new HashSet<>();
+            Set<DFANode> nodeSet = new HashSet<>();
             boolean isAccept = false;
             boolean isRoot = false;
-            for (Node node : dfaGraph.getNodeList()) {
+            for (DFANode node : dfaGraph.getNodeList()) {
                 if (currPartitions.get(node) == p) {
                     nodeSet.add(node);
                     if (node.isAccept()) {

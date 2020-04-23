@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public abstract class Graph<N extends Node> {
+public abstract class Graph<N extends Node<?>> {
 
     protected final Alphabet alphabet;
     protected final ArrayList<N> nodeList;
@@ -73,7 +73,7 @@ public abstract class Graph<N extends Node> {
         StringBuilder sb = new StringBuilder();
         sb.append("digraph {\n");
         sb.append("\n");
-        for (Node node : nodeList) {
+        for (N node : nodeList) {
             sb.append(String.format("  %s [width=1, height=1];\n", node.getId()));
         }
         sb.append("\n");

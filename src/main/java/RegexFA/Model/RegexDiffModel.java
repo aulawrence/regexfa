@@ -1,7 +1,10 @@
 package RegexFA.Model;
 
 import RegexFA.Alphabet;
-import RegexFA.Graph.*;
+import RegexFA.Graph.DFAGraph;
+import RegexFA.Graph.DFANode;
+import RegexFA.Graph.Graph;
+import RegexFA.Graph.GraphViz;
 import RegexFA.Parser.ParserException;
 import RegexFA.Parser.RegexParser;
 
@@ -14,9 +17,9 @@ import java.util.Optional;
 public class RegexDiffModel extends Model implements Closeable {
 
     private final GraphViz graphViz = new GraphViz();
-    private final ArrayList<Node> testStringNodes1 = new ArrayList<>();
-    private final ArrayList<Node> testStringNodes2 = new ArrayList<>();
-    private final ArrayList<Node> testStringNodesXor = new ArrayList<>();
+    private final ArrayList<DFANode> testStringNodes1 = new ArrayList<>();
+    private final ArrayList<DFANode> testStringNodes2 = new ArrayList<>();
+    private final ArrayList<DFANode> testStringNodesXor = new ArrayList<>();
     private Alphabet alphabet;
     private String regex1 = "";
     private String regex2 = "";
@@ -136,7 +139,7 @@ public class RegexDiffModel extends Model implements Closeable {
     }
 
     private String getDotString(GraphPanelModel.GraphChoice graphChoice) {
-        Node dfaNode = null;
+        DFANode dfaNode = null;
         switch (graphChoice) {
             case Graph1:
                 if (testStringPos + 1 < testStringNodes1.size()) {

@@ -38,7 +38,7 @@ public class RegexParser {
         for (int i = 0; i < chArray.length; i++) {
             char ch = chArray[i];
             if (!s.contains(ch)) {
-                throw new ParserException(String.format("'%s' at position %d is not a valid character.", ch, i));
+                throw new ParserException(ch, i, "It is not a valid character.");
             }
             if (!inQuantifier) {
                 switch (ch) {
@@ -49,7 +49,7 @@ public class RegexParser {
                     case ')':
                         bracketCount--;
                         if (bracketCount < 0) {
-                            throw new ParserException(String.format("')' at position %d is not valid. Cannot match opening bracket.", i));
+                            throw new ParserException(')', i, "Cannot match opening bracket.");
                         }
                         prevAtom = true;
                         break;
@@ -57,7 +57,7 @@ public class RegexParser {
                     case '*':
                     case '?':
                         if (!prevAtom) {
-                            throw new ParserException(String.format("'%s' at position %d is not valid. The preceding character must be in the alphabet or a closing bracket.", ch, i));
+                            throw new ParserException(ch, i, "The preceding character must be in the alphabet or a closing bracket.");
                         }
                         prevAtom = false;
                         break;
@@ -69,7 +69,7 @@ public class RegexParser {
                         break;
                     case '{':
                         if (!prevAtom) {
-                            throw new ParserException(String.format("'%s' at position %d is not valid. The preceding character must be in the alphabet or a closing bracket.", ch, i));
+                            throw new ParserException(ch, i, "The preceding character must be in the alphabet or a closing bracket.");
                         }
                         inQuantifier = true;
                         minQuantifier = "";
@@ -78,7 +78,7 @@ public class RegexParser {
                         break;
                     default:
                         if (ch == Alphabet.Empty || !alphabet.alphabetSet.contains(ch)) {
-                            throw new ParserException(String.format("'%s' at position %d is not valid. This character is not in the alphabet.", ch, i));
+                            throw new ParserException(ch, i, "This character is not in the alphabet.");
                         }
                         prevAtom = true;
                         break;
@@ -87,10 +87,10 @@ public class RegexParser {
                 switch (ch) {
                     case '}':
                         if (minQuantifier.equals("")) {
-                            throw new ParserException(String.format("'%s' at position %d is not valid. A minimum value must be set.", ch, i));
+                            throw new ParserException(ch, i, "A minimum value must be set.");
                         }
                         if (maxQuantifier != null && !maxQuantifier.equals("") && Integer.parseInt(minQuantifier) > Integer.parseInt(maxQuantifier)) {
-                            throw new ParserException(String.format("'%s' at position %d is not valid. The minimum value cannot be greater than the maximum value.", ch, i));
+                            throw new ParserException(ch, i, "The minimum value cannot be greater than the maximum value.");
                         }
 
                         inQuantifier = false;
@@ -99,10 +99,10 @@ public class RegexParser {
                         break;
                     case ',':
                         if (minQuantifier.equals("")) {
-                            throw new ParserException(String.format("'%s' at position %d is not valid. A minimum value must be set.", ch, i));
+                            throw new ParserException(ch, i, "A minimum value must be set.");
                         }
                         if (maxQuantifier != null) {
-                            throw new ParserException(String.format("'%s' at position %d is not valid. Only one comma is allowed inside curly brackets.", ch, i));
+                            throw new ParserException(ch, i, "Only one comma is allowed inside curly brackets.");
                         }
                         maxQuantifier = "";
                         break;
@@ -123,12 +123,12 @@ public class RegexParser {
                         }
                         break;
                     default:
-                        throw new ParserException(String.format("'%s' at position %d is not valid. This character is not allowed inside curly brackets.", ch, i));
+                        throw new ParserException(ch, i, "This character is not allowed inside curly brackets.");
                 }
             }
         }
         if (bracketCount != 0) {
-            throw new ParserException(String.format("Unmatched brackets: Missing %d closing brackets.", bracketCount));
+            throw new ParserException(String.format("Missing %d closing brackets.", bracketCount));
         }
         if (inQuantifier) {
             throw new ParserException("Missing closing curly braces.");
@@ -275,7 +275,7 @@ public class RegexParser {
         return sb.toString();
     }
 
-    private static boolean addModifier(NFAGraph graph, Node prev, Node atomBegin, Character ch) {
+    private static boolean addModifier(NFAGraph graph, NFANode prev, NFANode atomBegin, Character ch) {
         if (ch != null) {
             switch (ch) {
                 case '+':
@@ -300,15 +300,15 @@ public class RegexParser {
         verify(string, alphabet);
         String prep = preprocessQuantifier(string, alphabet);
         NFAGraph graph = new NFAGraph(alphabet);
-        Stack<Node> groupStack = new Stack<>();
-        Stack<Node> orStack = new Stack<>();
-        Node startNode = graph.addNode();
+        Stack<NFANode> groupStack = new Stack<>();
+        Stack<NFANode> orStack = new Stack<>();
+        NFANode startNode = graph.addNode();
         graph.setRootNode(startNode);
         groupStack.push(startNode);
-        Node startNode2 = graph.addNode();
+        NFANode startNode2 = graph.addNode();
         graph.addEdge(startNode, startNode2, Alphabet.Empty);
-        Node curr = startNode2;
-        Node prev = startNode2;
+        NFANode curr = startNode2;
+        NFANode prev = startNode2;
         int i = 0;
         while (i < prep.length()) {
             char chCurr = prep.charAt(i);
@@ -388,7 +388,6 @@ public class RegexParser {
                 graph.addEdge(orStack.pop(), curr, Alphabet.Empty);
             }
         }
-        curr.setAccept(true);
         graph.setTerminalNode(curr);
         if (groupStack.pop() != startNode) throw new AssertionError();
         if (!orStack.isEmpty()) throw new AssertionError();
