@@ -1,7 +1,10 @@
 package RegexFA.Model;
 
 import RegexFA.Alphabet;
-import RegexFA.Graph.*;
+import RegexFA.Graph.DFAGraph;
+import RegexFA.Graph.DFANode;
+import RegexFA.Graph.GraphViz;
+import RegexFA.Graph.NFAGraph;
 import RegexFA.Parser.ParserException;
 import RegexFA.Parser.RegexParser;
 
@@ -23,7 +26,6 @@ public class RegexFAModel extends Model implements Closeable {
     private String testStringErrorMsg;
     private int testStringPos;
     private final ArrayList<DFANode> testStringDFANodes;
-    private final ArrayList<Boolean> testStringAcceptance;
     private NFAGraph nfa;
     private DFAGraph dfa;
     private DFAGraph min_dfa;
@@ -34,7 +36,6 @@ public class RegexFAModel extends Model implements Closeable {
         testString = "";
         testStringPos = -1;
         testStringDFANodes = new ArrayList<>();
-        testStringAcceptance = new ArrayList<>();
         graphViz = new GraphViz();
     }
 
@@ -67,24 +68,20 @@ public class RegexFAModel extends Model implements Closeable {
     private synchronized void generateTestStringLists() {
         if (regexSuccess && testStringSuccess) {
             testStringDFANodes.clear();
-            testStringAcceptance.clear();
             DFANode curr = dfa.getRootNode();
             int i = 0;
             if (curr != null) {
                 testStringDFANodes.add(curr);
-                testStringAcceptance.add(curr.isAccept());
             }
             while (curr != null && i < testString.length()) {
                 curr = dfa.moveFromNode(curr, testString.charAt(i));
                 if (curr != null) {
                     testStringDFANodes.add(curr);
-                    testStringAcceptance.add(curr.isAccept());
                 }
                 i++;
             }
         } else {
             testStringDFANodes.clear();
-            testStringAcceptance.clear();
         }
     }
 
@@ -106,15 +103,15 @@ public class RegexFAModel extends Model implements Closeable {
     }
 
     public synchronized Path getImage(GraphPanelModel.GraphChoice graphChoice, String imgName) {
-        return Graph.getImage(graphViz, getDotString(graphChoice), imgName);
+        return graphViz.toImage(getDotString(graphChoice), imgName);
     }
 
     public synchronized boolean getTestStringAcceptance(int i) {
         if (i < 0 || i > testString.length()) {
             throw new IllegalArgumentException();
         }
-        if (i + 1 < testStringAcceptance.size()) {
-            return testStringAcceptance.get(i + 1);
+        if (i + 1 < testStringDFANodes.size()) {
+            return testStringDFANodes.get(i + 1).isAccept();
         }
         return false;
     }

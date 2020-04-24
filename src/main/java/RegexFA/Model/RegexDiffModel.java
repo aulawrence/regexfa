@@ -1,9 +1,9 @@
 package RegexFA.Model;
 
 import RegexFA.Alphabet;
+import RegexFA.Graph.DFA;
 import RegexFA.Graph.DFAGraph;
 import RegexFA.Graph.DFANode;
-import RegexFA.Graph.Graph;
 import RegexFA.Graph.GraphViz;
 import RegexFA.Parser.ParserException;
 import RegexFA.Parser.RegexParser;
@@ -86,9 +86,9 @@ public class RegexDiffModel extends Model implements Closeable {
             graphSuccess = false;
             min_dfa1 = RegexParser.toGraph(regex1, alphabet).toDFA().minimize().clearNodeSet();
             min_dfa2 = RegexParser.toGraph(regex2, alphabet).toDFA().minimize().clearNodeSet();
-            min_dfaXor = DFAGraph.xor(min_dfa1, min_dfa2).toDFA().minimize().clearNodeSet();
+            min_dfaXor = DFA.xor(min_dfa1, min_dfa2).toDFA().minimize().clearNodeSet();
             graphSuccess = true;
-            Optional<String> discrepancy = DFAGraph.getFirstAcceptString(min_dfaXor);
+            Optional<String> discrepancy = DFA.getFirstAcceptString(min_dfaXor);
             if (discrepancy.isEmpty()) {
                 graphMessage = String.format("Patterns %s and %s are equivalent.%n", regex1, regex2);
             } else {
@@ -162,7 +162,7 @@ public class RegexDiffModel extends Model implements Closeable {
     }
 
     public Path getImage(GraphPanelModel.GraphChoice graphChoice, String imgName) {
-        return Graph.getImage(graphViz, getDotString(graphChoice), imgName);
+        return graphViz.toImage(getDotString(graphChoice), imgName);
     }
 
 

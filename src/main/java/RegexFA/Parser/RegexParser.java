@@ -415,20 +415,20 @@ public class RegexParser {
             System.out.println(preprocessQuantifier(pattern2, alphabet));
             NFAGraph g2 = toGraph(pattern2, alphabet);
             DFAGraph h2 = g2.toDFA().minimize();
-            DFAGraph h3 = DFAGraph.xor(h1, h2).toDFA().minimize();
+            DFAGraph h3 = DFA.xor(h1, h2).toDFA().minimize();
 
             h1.clearNodeSet();
             h2.clearNodeSet();
             h3.clearNodeSet();
 
-            Graph.getImage(graphViz, g1.toDotString(), "g1");
-            Graph.getImage(graphViz, g2.toDotString(), "g2");
+            graphViz.toImage(g1.toDotString(), "g1");
+            graphViz.toImage(g2.toDotString(), "g2");
 
-            Graph.getImage(graphViz, h1.toDotString(), "h1");
-            Graph.getImage(graphViz, h2.toDotString(), "h2");
-            Graph.getImage(graphViz, h3.toDotString(), "h3");
+            graphViz.toImage(h1.toDotString(), "h1");
+            graphViz.toImage(h2.toDotString(), "h2");
+            graphViz.toImage(h3.toDotString(), "h3");
 
-            Optional<String> discrepancy = DFAGraph.getFirstDiscrepancyMin(h1, h2);
+            Optional<String> discrepancy = DFA.getFirstDiscrepancyMin(h1, h2);
             if (discrepancy.isEmpty()) {
                 System.out.printf("Patterns %s and %s are equivalent.%n", pattern1, pattern2);
             } else {

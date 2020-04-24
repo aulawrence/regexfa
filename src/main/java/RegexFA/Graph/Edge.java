@@ -12,6 +12,11 @@ public class Edge<N extends Node> {
     }
 
     @Override
+    public String toString() {
+        return String.format("Edge(%s, %s, %s)", fromNode.getId(), toNode.getId(), label);
+    }
+
+    @Override
     public boolean equals(Object obj) {
         if (!(obj instanceof Edge)) {
             return false;

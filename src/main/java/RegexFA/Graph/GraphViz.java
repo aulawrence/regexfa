@@ -32,7 +32,7 @@ public class GraphViz implements Closeable {
         this.fileList = new HashSet<>();
     }
 
-    public Path toImage(String dotString, String imageName) throws IOException, InterruptedException {
+    public Path toImage_exn(String dotString, String imageName) throws IOException, InterruptedException {
         assert !imageName.contains("/") && !imageName.contains("\\");
 
         Path dotPath = dir.resolve(imageName + ".dot");
@@ -61,6 +61,15 @@ public class GraphViz implements Closeable {
             return null;
         }
         return pngPath;
+    }
+
+    public Path toImage(String dotString, String imageName) {
+        try {
+            return toImage_exn(dotString, imageName);
+        } catch (InterruptedException | IOException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     @Override
