@@ -77,7 +77,7 @@ public class RegexParser {
                         prevAtom = false;
                         break;
                     default:
-                        if (ch == Alphabet.Empty || !alphabet.alphabetSet.contains(ch)) {
+                        if (!alphabet.alphabetSet.contains(ch)) {
                             throw new ParserException(ch, i, "This character is not in the alphabet.");
                         }
                         prevAtom = true;
@@ -353,10 +353,8 @@ public class RegexParser {
                     break;
                 case '.':
                     curr = graph.addNode();
-                    for (char ch : alphabet.alphabetList) {
-                        if (ch != Alphabet.Empty) {
-                            graph.addEdge(prev, curr, ch);
-                        }
+                    for (char ch : alphabet.alphabetSet) {
+                        graph.addEdge(prev, curr, ch);
                     }
                     if (addModifier(graph, curr, prev, chNext)) {
                         prev = curr;

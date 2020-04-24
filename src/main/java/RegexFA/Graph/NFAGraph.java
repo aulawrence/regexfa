@@ -146,7 +146,6 @@ public class NFAGraph extends Graph<NFANode> {
             addEdge(map.get(edge.fromNode), map.get(edge.toNode), edge.label);
         }
         addEdge(toNode, map.get(g1.getRootNode()), Alphabet.Empty);
-        addEdge(terminalNode, map.get(g1.getRootNode()), Alphabet.Empty);
         return map.get(g1.getTerminalNode());
     }
 

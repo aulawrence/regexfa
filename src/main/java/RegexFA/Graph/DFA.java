@@ -43,14 +43,18 @@ public class DFA {
                         DFANode b = partitionNodeList.get(j);
                         // b has already been moved to the new partition
                         if (currPartitions.get(b) != p) continue;
-                        for (int k = 0; k < alphabet.n; k++) {
-                            // Partition 1 is perpetual reject partition
-                            int aPartNum = a.getEdge(k) == null ? 1 : prevPartitions.get(a.getEdge(k));
-                            int bPartNum = b.getEdge(k) == null ? 1 : prevPartitions.get(b.getEdge(k));
-                            if (aPartNum != bPartNum) {
-                                currPartitions.put(b, currN);
-                                modified = true;
-                                break;
+                        Map<Character, DFANode> aEdges = dfaGraph.getEdgesFrom(a);
+                        Map<Character, DFANode> bEdges = dfaGraph.getEdgesFrom(b);
+                        if (!(aEdges.keySet().equals(bEdges.keySet()))) {
+                            currPartitions.put(b, currN);
+                            modified = true;
+                        } else {
+                            for (char ch : aEdges.keySet()) {
+                                if (!prevPartitions.get(aEdges.get(ch)).equals(prevPartitions.get(bEdges.get(ch)))) {
+                                    currPartitions.put(b, currN);
+                                    modified = true;
+                                    break;
+                                }
                             }
                         }
                     }
@@ -104,51 +108,32 @@ public class DFA {
 
     public static DFAGraph not(DFAGraph dfaGraph) {
         Alphabet alphabet = dfaGraph.getAlphabet();
-        DFANode rootNode = dfaGraph.getRootNode();
         DFAGraph negDFA = new DFAGraph(alphabet);
-        DFANode negRoot = negDFA.addNode();
-        negRoot.setAccept(!rootNode.isAccept());
-        negDFA.setRootNode(negRoot);
         HashMap<DFANode, DFANode> nodeMap = new HashMap<>();
-        Queue<DFANode> nodeQueue = new ArrayDeque<>();
-        nodeMap.put(rootNode, negRoot);
-        nodeQueue.add(rootNode);
-        while (!nodeQueue.isEmpty()) {
-            DFANode curr = nodeQueue.poll();
-            DFANode negCurr = nodeMap.get(curr);
-            Set<Character> nullEdges = new HashSet<>();
-//          Init i = 1 to ignore Alphabet.Empty
-            for (int i = 1; i < alphabet.n; i++) {
-                DFANode node = curr.getEdge(i);
-                if (node == null) {
-                    nullEdges.add(alphabet.alphabetList.get(i));
-                } else {
-                    DFANode negNode;
-                    if (!nodeMap.containsKey(node)) {
-                        negNode = negDFA.addNode();
-                        negNode.setAccept(!node.isAccept());
-                        nodeMap.put(node, negNode);
-                        nodeQueue.add(node);
-                    } else {
-                        negNode = nodeMap.get(node);
+        DFANode negNullNode = null;
+        for (DFANode node : dfaGraph.getNodes()) {
+            DFANode negNode = negDFA.addNode();
+            negNode.setAccept(!node.isAccept());
+            nodeMap.put(node, negNode);
+            Set<Character> edgeCharSet = dfaGraph.getEdgesFrom(node).keySet();
+            for (char ch : alphabet.alphabetSet) {
+                if (!edgeCharSet.contains(ch)) {
+                    if (negNullNode == null) {
+                        negNullNode = negDFA.addNode();
+                        negNullNode.setAccept(true);
+                        for (char ch1 : alphabet.alphabetSet) {
+                            negDFA.addEdge(negNullNode, negNullNode, ch1);
+                        }
                     }
-                    negDFA.addEdge(negCurr, negNode, alphabet.alphabetList.get(i));
-                }
-            }
-            if (!nullEdges.isEmpty()) {
-                DFANode negNullNode = negDFA.addNode();
-                negNullNode.setAccept(true);
-                for (char ch : nullEdges) {
-                    negDFA.addEdge(negCurr, negNullNode, ch);
-                }
-                for (int i = 1; i < alphabet.n; i++) {
-                    negDFA.addEdge(negNullNode, negNullNode, alphabet.alphabetList.get(i));
+                    negDFA.addEdge(nodeMap.get(node), negNullNode, ch);
                 }
             }
         }
-
+        negDFA.setRootNode(nodeMap.get(dfaGraph.getRootNode()));
+        for (Edge<DFANode> edge : dfaGraph.getEdges()) {
+            negDFA.addEdge(nodeMap.get(edge.fromNode), nodeMap.get(edge.toNode), edge.label);
+        }
         negDFA.pruneAbsorbingNodes();
-
         return negDFA;
     }
 
@@ -180,9 +165,7 @@ public class DFA {
             if (currNode.isAccept()) {
                 return Optional.of(currS);
             }
-            // Init i = 1 to ignore Alphabet.empty
-            for (int i = 1; i < alphabet.n; i++) {
-                char ch = alphabet.alphabetList.get(i);
+            for (char ch : alphabet.alphabetSet) {
                 DFANode nextNode = g.moveFromNode(currNode, ch);
                 if (nextNode != null && !stringMap.containsKey(nextNode)) {
                     stringMap.put(nextNode, currS + ch);
@@ -199,7 +182,6 @@ public class DFA {
 
     public static boolean isEquivalentMin(DFAGraph g1, DFAGraph g2) {
         assert g1.alphabet == g2.alphabet;
-        Alphabet alphabet = g1.alphabet;
         if (g1 == g2) {
             return true;
         } else {
@@ -212,7 +194,7 @@ public class DFA {
             DFANode root1 = g1.getRootNode();
             DFANode root2 = g2.getRootNode();
             nodeMap.put(root1, root2);
-            nodeMap.put(root2, root1);
+            invNodeMap.put(root2, root1);
             stringMap.put(root1, "");
             Queue<DFANode> nodeQueue = new ArrayDeque<>();
             nodeQueue.add(root1);
@@ -220,40 +202,36 @@ public class DFA {
                 DFANode curr1 = nodeQueue.poll();
                 DFANode curr2 = nodeMap.get(curr1);
                 String s1 = stringMap.get(curr1);
-
-                // Init i = 1 to ignore Alphabet.empty
-                for (int i = 1; i < alphabet.n; i++) {
-                    char ch = alphabet.alphabetList.get(i);
-                    DFANode next1 = g1.moveFromNode(curr1, ch);
-                    DFANode next2 = g2.moveFromNode(curr2, ch);
+                Map<Character, DFANode> edgeMap1 = g1.getEdgesFrom(curr1);
+                Map<Character, DFANode> edgeMap2 = g2.getEdgesFrom(curr2);
+                if (!edgeMap1.keySet().equals(edgeMap2.keySet())) {
+                    // Some edges in one set are mapped to null in the other set
+                    return false;
+                }
+                for (char ch : edgeMap1.keySet()) {
+                    DFANode next1 = edgeMap1.get(ch);
+                    DFANode next2 = edgeMap2.get(ch);
                     String nextS = s1 + ch;
-
-                    if (next1 != null || next2 != null) {
-                        if (next1 == null || next2 == null) {
-                            // One null, other non-null
+                    if (next1.isAccept() != next2.isAccept()) {
+                        // One accept, other reject
+                        return false;
+                    }
+                    if (nodeMap.containsKey(next1)) {
+                        // Both seen but inconsistent
+                        if (nodeMap.get(next1) != next2 || invNodeMap.get(next2) != next1) {
                             return false;
                         }
-                        if (next1.isAccept() != next2.isAccept()) {
-                            // One accept, other reject
+                        // Both seen and consistent -> ok
+                    } else {
+                        if (invNodeMap.containsKey(next2)) {
+                            // next1 unseen, next2 seen
                             return false;
-                        }
-                        if (nodeMap.containsKey(next1)) {
-                            // Both seen but inconsistent
-                            if (nodeMap.get(next1) != next2 || invNodeMap.get(next2) != next1) {
-                                return false;
-                            }
-                            // Both seen and consistent -> ok
                         } else {
-                            if (invNodeMap.containsKey(next2)) {
-                                // next1 unseen, next2 seen
-                                return false;
-                            } else {
-                                // both unseen -> add to map
-                                nodeMap.put(next1, next2);
-                                invNodeMap.put(next2, next1);
-                                stringMap.put(next1, nextS);
-                                nodeQueue.add(next1);
-                            }
+                            // both unseen -> add to map
+                            nodeMap.put(next1, next2);
+                            invNodeMap.put(next2, next1);
+                            stringMap.put(next1, nextS);
+                            nodeQueue.add(next1);
                         }
                     }
                 }

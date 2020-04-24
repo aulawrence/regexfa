@@ -71,7 +71,7 @@ public class RegexDiffModel extends Model implements Closeable {
     private void validateTestString() {
         for (int i = 0; i < testString.length(); i++) {
             char ch = testString.charAt(i);
-            if (ch == Alphabet.Empty || !alphabet.alphabetSet.contains(ch)) {
+            if (!alphabet.alphabetSet.contains(ch)) {
                 testStringSuccess = false;
                 testStringErrorMsg = String.format("'%c' at position %d is not valid. This character is not in the alphabet.", ch, i);
                 return;

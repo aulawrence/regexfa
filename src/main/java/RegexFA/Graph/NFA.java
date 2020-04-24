@@ -75,33 +75,11 @@ public class NFA {
         NFAGraph g = new NFAGraph(alphabet);
         NFANode rootNode = g.addNode();
         g.setRootNode(rootNode);
-
-        HashMap<NFANode, NFANode> map = new HashMap<>();
-        for (NFANode node1 : g1.getNodes()) {
-            NFANode node = g.addNode();
-            map.put(node1, node);
-        }
-        for (Edge<NFANode> edge : g1.getEdges()) {
-            g.addEdge(map.get(edge.fromNode), map.get(edge.toNode), edge.label);
-        }
-        g.addEdge(rootNode, map.get(g1.getRootNode()), Alphabet.Empty);
-        NFANode g1TermOnG = map.get(g1.getTerminalNode());
-
-        map = new HashMap<>();
-        for (NFANode node2 : g2.getNodes()) {
-            NFANode node = g.addNode();
-            map.put(node2, node);
-        }
-        for (Edge<NFANode> edge : g2.getEdges()) {
-            g.addEdge(map.get(edge.fromNode), map.get(edge.toNode), edge.label);
-        }
-        g.addEdge(rootNode, map.get(g2.getRootNode()), Alphabet.Empty);
-
+        NFANode term1 = g.attachNFAGraph(rootNode, g1);
+        NFANode term2 = g.attachNFAGraph(rootNode, g2);
         NFANode termNode = g.addNode();
-
-        g.addEdge(g1TermOnG, termNode, Alphabet.Empty);
-        g.addEdge(map.get(g2.getTerminalNode()), termNode, Alphabet.Empty);
-
+        g.addEdge(term1, termNode, Alphabet.Empty);
+        g.addEdge(term2, termNode, Alphabet.Empty);
         g.setTerminalNode(termNode);
         return g;
     }

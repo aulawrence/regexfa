@@ -1,14 +1,10 @@
 package RegexFA.Graph;
 
-import RegexFA.Alphabet;
-
 import java.util.Collections;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 public class DFANode extends Node<DFAGraph> {
-    private final Alphabet alphabet;
-    private final DFANode[] edges;
     private Set<Node<?>> nodeSet;
     private boolean accept;
 
@@ -19,8 +15,6 @@ public class DFANode extends Node<DFAGraph> {
 
     public DFANode(DFAGraph graph, String id, Set<Node<?>> nodeSet) {
         super(graph, id);
-        this.alphabet = graph.getAlphabet();
-        this.edges = new DFANode[alphabet.n];
         this.nodeSet = nodeSet == null ? null : Collections.unmodifiableSet(nodeSet);
         this.accept = false;
     }
@@ -39,18 +33,6 @@ public class DFANode extends Node<DFAGraph> {
 
     public void setAccept(boolean accept) {
         this.accept = accept;
-    }
-
-    public void setEdge(char ch, DFANode node) {
-        edges[alphabet.invertMap.get(ch)] = node;
-    }
-
-    public DFANode getEdge(char ch) {
-        return edges[alphabet.invertMap.get(ch)];
-    }
-
-    public DFANode getEdge(int i) {
-        return edges[i];
     }
 
     public String toRepr() {

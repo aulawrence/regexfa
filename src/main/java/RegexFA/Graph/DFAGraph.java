@@ -2,19 +2,21 @@ package RegexFA.Graph;
 
 import RegexFA.Alphabet;
 
-import java.util.ArrayDeque;
-import java.util.HashSet;
-import java.util.Queue;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 public class DFAGraph extends Graph<DFANode> {
     private DFANode rootNode;
     private StringBuilder edgeDotStringMemo;
+    private final Map<DFANode, Map<Character, DFANode>> edgeMapForward;
+    private final Map<DFANode, Set<Edge<DFANode>>> edgeMapBackward;
 
     public DFAGraph(Alphabet alphabet) {
         super(alphabet);
         edgeDotStringMemo = null;
+        edgeMapForward = new HashMap<>();
+        edgeMapBackward = new HashMap<>();
     }
 
     public DFANode getRootNode() {
@@ -30,6 +32,8 @@ public class DFAGraph extends Graph<DFANode> {
         String idString = getIDString(getNextID());
         DFANode node = new DFANode(this, idString);
         this.nodes.add(node);
+        this.edgeMapForward.put(node, new HashMap<>());
+        this.edgeMapBackward.put(node, new HashSet<>());
         return node;
     }
 
@@ -37,22 +41,42 @@ public class DFAGraph extends Graph<DFANode> {
         String idString = getIDString(getNextID());
         DFANode node = new DFANode(this, idString, new HashSet<>(nodeSet));
         this.nodes.add(node);
+        this.edgeMapForward.put(node, new HashMap<>());
+        this.edgeMapBackward.put(node, new HashSet<>());
         return node;
     }
 
     @Override
     public Set<Edge<DFANode>> removeNode(DFANode node) {
-        Set<Edge<DFANode>> removedEdges = super.removeNode(node);
-        if (!removedEdges.isEmpty()) {
+        Set<Edge<DFANode>> removedEdgesForward = edgeMapForward.remove(node).entrySet().stream().map(e -> new Edge<>(node, e.getValue(), e.getKey())).collect(Collectors.toSet());
+        Set<Edge<DFANode>> removedEdgesBackward = edgeMapBackward.remove(node);
+        if (!removedEdgesForward.isEmpty()) {
             edgeDotStringMemo = null;
+            edges.removeAll(removedEdgesForward);
+            for (Edge<DFANode> edge : removedEdgesForward) {
+                if (edgeMapBackward.containsKey(edge.toNode)) {
+                    edgeMapBackward.get(edge.toNode).remove(edge);
+                }
+            }
         }
-        return removedEdges;
+        if (!removedEdgesBackward.isEmpty()) {
+            edgeDotStringMemo = null;
+            edges.removeAll(removedEdgesBackward);
+            for (Edge<DFANode> edge : removedEdgesBackward) {
+                if (edgeMapForward.containsKey(edge.fromNode)) {
+                    edgeMapForward.get(edge.fromNode).remove(edge.label);
+                }
+            }
+        }
+        removedEdgesForward.addAll(removedEdgesBackward);
+        return removedEdgesForward;
     }
 
     @Override
     public Edge<DFANode> addEdge(DFANode fromNode, DFANode toNode, char ch) {
         Edge<DFANode> edge = super.addEdge(fromNode, toNode, ch);
-        fromNode.setEdge(ch, toNode);
+        edgeMapForward.get(fromNode).put(ch, toNode);
+        edgeMapBackward.get(toNode).add(edge);
         edgeDotStringMemo = null;
         return edge;
     }
@@ -60,7 +84,12 @@ public class DFAGraph extends Graph<DFANode> {
     @Override
     public void removeEdge(Edge<DFANode> edge) {
         super.removeEdge(edge);
-        edge.fromNode.setEdge(edge.label, null);
+        if (edgeMapForward.containsKey(edge.fromNode)) {
+            edgeMapForward.get(edge.fromNode).remove(edge.label);
+        }
+        if (edgeMapBackward.containsKey(edge.toNode)) {
+            edgeMapBackward.get(edge.toNode).remove(edge);
+        }
         edgeDotStringMemo = null;
     }
 
@@ -69,6 +98,14 @@ public class DFAGraph extends Graph<DFANode> {
             node.clearNodeSet();
         }
         return this;
+    }
+
+    public Map<Character, DFANode> getEdgesFrom(DFANode fromNode) {
+        return Collections.unmodifiableMap(edgeMapForward.get(fromNode));
+    }
+
+    public Set<Edge<DFANode>> getEdgesTo(DFANode toNode) {
+        return Collections.unmodifiableSet(edgeMapBackward.get(toNode));
     }
 
     public String toDotString() {
@@ -141,7 +178,7 @@ public class DFAGraph extends Graph<DFANode> {
 
     public boolean acceptsString(String s) {
         for (char ch : s.toCharArray()) {
-            if (ch == Alphabet.Empty || !alphabet.alphabetSet.contains(ch)) {
+            if (!alphabet.alphabetSet.contains(ch)) {
                 return false;
             }
         }
@@ -156,7 +193,7 @@ public class DFAGraph extends Graph<DFANode> {
     }
 
     public DFANode moveFromNode(DFANode curr, char ch) {
-        return curr.getEdge(ch);
+        return edgeMapForward.get(curr).getOrDefault(ch, null);
     }
 
     public DFAGraph minimize() {
@@ -183,18 +220,16 @@ public class DFAGraph extends Graph<DFANode> {
             nodeSet.clear();
             while (!nodeQueue.isEmpty()) {
                 DFANode dfaNode = nodeQueue.poll();
-                if (!dfaNode.isAccept() && alphabet.alphabetSet.stream().map(dfaNode::getEdge).allMatch(x -> x == null || x == dfaNode)) {
+                if (!dfaNode.isAccept() && edgeMapForward.get(dfaNode).values().stream().allMatch(dfaNode::equals)) {
                     if (dfaNode != rootNode) {
                         for (Edge<DFANode> edge : removeNode(dfaNode)) {
-                            removeEdge(edge);
                             nodeSet.add(edge.fromNode);
                         }
+                        nodeSet.remove(dfaNode);
                     } else {
                         // Root node was about to be removed. Instead, keep root node add edges connecting to itself.
                         for (char ch : alphabet.alphabetSet) {
-                            if (ch != Alphabet.Empty) {
-                                addEdge(dfaNode, dfaNode, ch);
-                            }
+                            addEdge(dfaNode, dfaNode, ch);
                         }
                     }
                 }
