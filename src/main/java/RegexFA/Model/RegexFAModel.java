@@ -5,6 +5,7 @@ import RegexFA.Graph.DFAGraph;
 import RegexFA.Graph.DFANode;
 import RegexFA.Graph.GraphViz;
 import RegexFA.Graph.NFAGraph;
+import RegexFA.Parser.Expression;
 import RegexFA.Parser.ParserException;
 import RegexFA.Parser.RegexParser;
 
@@ -43,7 +44,8 @@ public class RegexFAModel extends Model implements Closeable {
         try {
             regexSuccess = false;
             regexErrMsg = "";
-            nfa = RegexParser.toGraph(regex, alphabet);
+            Expression expression = RegexParser.parse(regex, alphabet);
+            nfa = RegexParser.toGraph(expression, alphabet);
             dfa = nfa.toDFA();
             min_dfa = dfa.minimize();
             regexSuccess = true;

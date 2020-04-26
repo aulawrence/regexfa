@@ -14,12 +14,8 @@ import java.util.Queue;
 
 public class RegexParser {
 
-    public static void verify(String pattern, Alphabet alphabet) throws ParserException {
+    public static Expression parse(String pattern, Alphabet alphabet) throws ParserException {
         List<RegexTokenizer.Token> tokenList = RegexTokenizer.tokenize(pattern, alphabet);
-        parse(tokenList, alphabet);
-    }
-
-    private static Expression parse(List<RegexTokenizer.Token> tokenList, Alphabet alphabet) throws ParserException {
         Queue<RegexTokenizer.Token> queue = new ArrayDeque<>(tokenList);
         Expression expression = Expression.seek(queue, alphabet);
         if (queue.isEmpty()) throw new IllegalStateException();
@@ -29,17 +25,11 @@ public class RegexParser {
         return expression;
     }
 
-    public static NFAGraph toGraph(String pattern, Alphabet alphabet) throws ParserException {
-        List<RegexTokenizer.Token> tokenList = RegexTokenizer.tokenize(pattern, alphabet);
-        Expression expression = parse(tokenList, alphabet);
+    public static NFAGraph toGraph(Expression expression, Alphabet alphabet) {
         NFAGraph graph = new NFAGraph(alphabet);
         NFANode rootNode = graph.addNode();
         graph.setRootNode(rootNode);
-        if (expression != null) {
-            graph.setTerminalNode(expression.toGraph(graph, rootNode));
-        } else {
-            graph.setTerminalNode(rootNode);
-        }
+        graph.setTerminalNode(expression.toGraph(graph, rootNode));
         return graph;
     }
 
@@ -48,7 +38,8 @@ public class RegexParser {
         Alphabet alphabet = Alphabet.Binary;
         try {
             GraphViz graphViz = new GraphViz(Paths.get("parser_img"));
-            NFAGraph g1 = toGraph(pattern1, alphabet);
+            Expression expression1 = parse(pattern1, alphabet);
+            NFAGraph g1 = toGraph(expression1, alphabet);
             graphViz.toImage(g1.toDotString(), "g1");
             DFAGraph h1 = g1.toDFA();
             DFAGraph i1 = h1.minimize();

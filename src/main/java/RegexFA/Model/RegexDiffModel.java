@@ -5,6 +5,7 @@ import RegexFA.Graph.DFA;
 import RegexFA.Graph.DFAGraph;
 import RegexFA.Graph.DFANode;
 import RegexFA.Graph.GraphViz;
+import RegexFA.Parser.Expression;
 import RegexFA.Parser.ParserException;
 import RegexFA.Parser.RegexParser;
 
@@ -24,8 +25,10 @@ public class RegexDiffModel extends Model implements Closeable {
     private String regex1 = "";
     private String regex2 = "";
     private String testString = "";
+    private Expression expression1 = null;
     private boolean regex1Success = false;
     private String regex1ErrMsg = "";
+    private Expression expression2 = null;
     private boolean regex2Success = false;
     private String regex2ErrMsg = "";
     private boolean testStringSuccess = false;
@@ -43,7 +46,7 @@ public class RegexDiffModel extends Model implements Closeable {
     private void validateRegex1() {
         try {
             regex1Success = false;
-            RegexParser.verify(regex1, alphabet);
+            expression1 = RegexParser.parse(regex1, alphabet);
             regex1Success = true;
             regex1ErrMsg = "";
             if (regex2Success) {
@@ -51,13 +54,14 @@ public class RegexDiffModel extends Model implements Closeable {
             }
         } catch (ParserException e) {
             regex1ErrMsg = e.getMessage();
+            expression1 = null;
         }
     }
 
     private void validateRegex2() {
         try {
             regex2Success = false;
-            RegexParser.verify(regex2, alphabet);
+            expression2 = RegexParser.parse(regex2, alphabet);
             regex2Success = true;
             regex2ErrMsg = "";
             if (regex1Success) {
@@ -65,6 +69,7 @@ public class RegexDiffModel extends Model implements Closeable {
             }
         } catch (ParserException e) {
             regex2ErrMsg = e.getMessage();
+            expression2 = null;
         }
     }
 
@@ -82,23 +87,19 @@ public class RegexDiffModel extends Model implements Closeable {
     }
 
     public void generateGraphs() {
-        try {
-            graphSuccess = false;
-            min_dfa1 = RegexParser.toGraph(regex1, alphabet).toDFA().minimize().clearNodeSet();
-            min_dfa2 = RegexParser.toGraph(regex2, alphabet).toDFA().minimize().clearNodeSet();
-            min_dfaXor = DFA.xor(min_dfa1, min_dfa2).toDFA().minimize().clearNodeSet();
-            graphSuccess = true;
-            Optional<String> discrepancy = DFA.getFirstAcceptString(min_dfaXor);
-            if (discrepancy.isEmpty()) {
-                graphMessage = String.format("Patterns %s and %s are equivalent.%n", regex1, regex2);
-            } else {
-                graphMessage = String.format("Patterns %s and %s are not equivalent:%n", regex1, regex2) +
-                        String.format("|- String    : %s%n", discrepancy.get().equals("") ? Alphabet.Empty : discrepancy.get()) +
-                        String.format("|- Pattern 1 : %s%n", min_dfa1.acceptsString(discrepancy.get()) ? "accepts" : "rejects") +
-                        String.format("|- Pattern 2 : %s", min_dfa2.acceptsString(discrepancy.get()) ? "accepts" : "rejects");
-            }
-        } catch (ParserException e) {
-            graphMessage = e.getMessage();
+        graphSuccess = false;
+        min_dfa1 = RegexParser.toGraph(expression1, alphabet).toDFA().minimize().clearNodeSet();
+        min_dfa2 = RegexParser.toGraph(expression2, alphabet).toDFA().minimize().clearNodeSet();
+        min_dfaXor = DFA.xor(min_dfa1, min_dfa2).toDFA().minimize().clearNodeSet();
+        graphSuccess = true;
+        Optional<String> discrepancy = DFA.getFirstAcceptString(min_dfaXor);
+        if (discrepancy.isEmpty()) {
+            graphMessage = String.format("Patterns %s and %s are equivalent.%n", regex1, regex2);
+        } else {
+            graphMessage = String.format("Patterns %s and %s are not equivalent:%n", regex1, regex2) +
+                    String.format("|- String    : %s%n", discrepancy.get().equals("") ? Alphabet.Empty : discrepancy.get()) +
+                    String.format("|- Pattern 1 : %s%n", min_dfa1.acceptsString(discrepancy.get()) ? "accepts" : "rejects") +
+                    String.format("|- Pattern 2 : %s", min_dfa2.acceptsString(discrepancy.get()) ? "accepts" : "rejects");
         }
     }
 

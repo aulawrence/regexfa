@@ -48,6 +48,7 @@ public class DFAGraph extends Graph<DFANode> {
 
     @Override
     public Set<Edge<DFANode>> removeNode(DFANode node) {
+        this.nodes.remove(node);
         Set<Edge<DFANode>> removedEdgesForward = edgeMapForward.remove(node).entrySet().stream().map(e -> new Edge<>(node, e.getValue(), e.getKey())).collect(Collectors.toSet());
         Set<Edge<DFANode>> removedEdgesBackward = edgeMapBackward.remove(node);
         if (!removedEdgesForward.isEmpty()) {
@@ -68,7 +69,6 @@ public class DFAGraph extends Graph<DFANode> {
                 }
             }
         }
-        this.nodes.remove(node);
         removedEdgesForward.addAll(removedEdgesBackward);
         return removedEdgesForward;
     }
@@ -76,9 +76,11 @@ public class DFAGraph extends Graph<DFANode> {
     @Override
     public Edge<DFANode> addEdge(DFANode fromNode, DFANode toNode, char ch) {
         Edge<DFANode> edge = super.addEdge(fromNode, toNode, ch);
-        edgeMapForward.get(fromNode).put(ch, toNode);
-        edgeMapBackward.get(toNode).add(edge);
-        edgeDotStringMemo = null;
+        if (edge != null) {
+            edgeMapForward.get(fromNode).put(ch, toNode);
+            edgeMapBackward.get(toNode).add(edge);
+            edgeDotStringMemo = null;
+        }
         return edge;
     }
 
