@@ -138,14 +138,16 @@ public class NFAGraph extends Graph<NFANode> {
 
     public NFANode attachNFAGraph(NFANode toNode, NFAGraph g1) {
         HashMap<NFANode, NFANode> map = new HashMap<>();
+        map.put(g1.getRootNode(), toNode);
         for (NFANode node1 : g1.getNodes()) {
-            NFANode node = addNode();
-            map.put(node1, node);
+            if (node1 != g1.getRootNode()) {
+                NFANode node = addNode();
+                map.put(node1, node);
+            }
         }
         for (Edge<NFANode> edge : g1.getEdges()) {
             addEdge(map.get(edge.fromNode), map.get(edge.toNode), edge.label);
         }
-        addEdge(toNode, map.get(g1.getRootNode()), Alphabet.Empty);
         return map.get(g1.getTerminalNode());
     }
 

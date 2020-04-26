@@ -75,8 +75,12 @@ public class NFA {
         NFAGraph g = new NFAGraph(alphabet);
         NFANode rootNode = g.addNode();
         g.setRootNode(rootNode);
-        NFANode term1 = g.attachNFAGraph(rootNode, g1);
-        NFANode term2 = g.attachNFAGraph(rootNode, g2);
+        NFANode attachNode1 = g.addNode();
+        NFANode attachNode2 = g.addNode();
+        g.addEdge(rootNode, attachNode1, Alphabet.Empty);
+        g.addEdge(rootNode, attachNode2, Alphabet.Empty);
+        NFANode term1 = g.attachNFAGraph(attachNode1, g1);
+        NFANode term2 = g.attachNFAGraph(attachNode2, g2);
         NFANode termNode = g.addNode();
         g.addEdge(term1, termNode, Alphabet.Empty);
         g.addEdge(term2, termNode, Alphabet.Empty);

@@ -1,7 +1,6 @@
 package RegexFA;
 
 import java.util.*;
-import java.util.concurrent.Callable;
 
 public enum Alphabet {
     Unary(1, () -> {
@@ -44,12 +43,20 @@ public enum Alphabet {
     public final int n;
     public final Set<Character> alphabetSet;
     public final Set<Character> alphabetSetWithEmpty;
+    public final List<Character> alphabetList;
+    public final Map<Character, Integer> invertMap;
 
     Alphabet(int n, Thunk<List<Character>> alphabetCallable) {
         this.n = n + 1;
         List<Character> alphabetList = alphabetCallable.get();
         this.alphabetSet = Collections.unmodifiableSet(new LinkedHashSet<>(alphabetList));
         alphabetList.add(0, Alphabet.Empty);
+        Map<Character, Integer> temp_invertMap = new HashMap<>(this.n);
+        for (int i = 1; i < this.n; i++) {
+            temp_invertMap.put(alphabetList.get(i), i);
+        }
         this.alphabetSetWithEmpty = Collections.unmodifiableSet(new LinkedHashSet<>(alphabetList));
+        this.alphabetList = Collections.unmodifiableList(alphabetList);
+        this.invertMap = Collections.unmodifiableMap(temp_invertMap);
     }
 }
