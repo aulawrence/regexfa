@@ -2,11 +2,12 @@
 Convert a small subset of regex to NFA/ DFA/ Min-DFA
 
 Supports
-- Groups
-- Alternatives
+- Groups `(abc)`
+- Alternatives `a|b`
 - Greedy quantifiers `*`, `+`, `?`
 - Curly bracket quantifiers `{m}`, `{m,}`, `{m, n}`
 - Metacharacter `.`
+- Bracket expression `[aq]`, `[a-z]`, `[^0-3a]`
 
 Note that it currently can only determine whether the regex expression accepts the whole test string, i.e. whether `^<regex>$` accepts `<test-string>`.
 Some further work is needed to compute the strings captured by each group.     
@@ -22,16 +23,22 @@ Taking from https://stackoverflow.com/a/32760631, the grammar should be:
 <atom>           ::= <char>
                    | '.'
                    | '(' <expression> ')'
+                   | '[' <char-set>']'
+                   | '[' '^' <char-set>']'
 <quantifier>     ::= '*'
                    | '+'
                    | '?'
                    | '{' <number> '}'
                    | '{' <number> ',' '}'
                    | '{' <number> ',' <number> '}'
+<char-set>       ::= <char> <char-set>
+                   | <char> '-' <char> <char-set>
+                   | <char>
+                   | <char> '-' <char>
 <number>         ::= <number> <digit>
                    | <digit>
 ```
-where `<char>` represents the set of characters of the chosen alphabet, and `<digit>` represents the set of decimal digits.
+where `<char>` represents a character in the chosen alphabet, and `<digit>` represents a decimal digit.
 
 ## Dependencies
 Maven is used to manage dependencies. See [pom.xml](pom.xml)
