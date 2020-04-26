@@ -68,6 +68,7 @@ public class DFAGraph extends Graph<DFANode> {
                 }
             }
         }
+        this.nodes.remove(node);
         removedEdgesForward.addAll(removedEdgesBackward);
         return removedEdgesForward;
     }
@@ -220,7 +221,7 @@ public class DFAGraph extends Graph<DFANode> {
             nodeSet.clear();
             while (!nodeQueue.isEmpty()) {
                 DFANode dfaNode = nodeQueue.poll();
-                if (!dfaNode.isAccept() && edgeMapForward.get(dfaNode).values().stream().allMatch(dfaNode::equals)) {
+                if (!dfaNode.isAccept() && (edgeMapForward.get(dfaNode).isEmpty() || edgeMapForward.get(dfaNode).values().stream().allMatch(dfaNode::equals))) {
                     if (dfaNode != rootNode) {
                         for (Edge<DFANode> edge : removeNode(dfaNode)) {
                             nodeSet.add(edge.fromNode);
