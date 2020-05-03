@@ -12,7 +12,21 @@ public class DFA {
         Alphabet alphabet = dfaGraph.getAlphabet();
         Map<DFANode, Integer> prevPartitions;
         Map<DFANode, Integer> currPartitions = new HashMap<>();
-        for (DFANode node : dfaGraph.getNodes()) {
+        // Keep node if it is reachable from root and it can reach an accepting node.
+        // i.e. nodes on a path from root to accepting nodes.
+        Set<DFANode> nodes = dfaGraph.getReachableNodes();
+        nodes.retainAll(dfaGraph.getAliveNodes());
+        if (!nodes.contains(dfaGraph.getRootNode())) {
+            // From rootNode, we cannot travel to any accepting nodes. Return graph rejecting all strings.
+            DFAGraph graph = new DFAGraph(alphabet);
+            DFANode rootNode = graph.addNode();
+            graph.setRootNode(rootNode);
+            for (char ch : alphabet.alphabetSet) {
+                graph.addEdge(rootNode, rootNode, ch);
+            }
+            return graph;
+        }
+        for (DFANode node : nodes) {
             if (node.isAccept()) {
                 currPartitions.put(node, 0);
             } else {
@@ -27,7 +41,7 @@ public class DFA {
             currPartitions = new HashMap<>(prevPartitions);
             for (int p = 0; p < prevN; p++) {
                 List<DFANode> partitionNodeList = new ArrayList<>();
-                for (DFANode node : dfaGraph.getNodes()) {
+                for (DFANode node : nodes) {
                     if (prevPartitions.get(node) == p) {
                         partitionNodeList.add(node);
                     }
@@ -45,16 +59,13 @@ public class DFA {
                         if (currPartitions.get(b) != p) continue;
                         Map<Character, DFANode> aEdges = dfaGraph.getEdgesFrom(a);
                         Map<Character, DFANode> bEdges = dfaGraph.getEdgesFrom(b);
-                        if (!(aEdges.keySet().equals(bEdges.keySet()))) {
-                            currPartitions.put(b, currN);
-                            modified = true;
-                        } else {
-                            for (char ch : aEdges.keySet()) {
-                                if (!prevPartitions.get(aEdges.get(ch)).equals(prevPartitions.get(bEdges.get(ch)))) {
-                                    currPartitions.put(b, currN);
-                                    modified = true;
-                                    break;
-                                }
+                        Set<Character> characterSet = new HashSet<>(aEdges.keySet());
+                        characterSet.addAll(bEdges.keySet());
+                        for (char ch : characterSet) {
+                            if (!prevPartitions.getOrDefault(aEdges.get(ch), -1).equals(prevPartitions.getOrDefault(bEdges.get(ch), -1))) {
+                                currPartitions.put(b, currN);
+                                modified = true;
+                                break;
                             }
                         }
                     }
@@ -71,7 +82,7 @@ public class DFA {
             Set<DFANode> nodeSet = new HashSet<>();
             boolean isAccept = false;
             boolean isRoot = false;
-            for (DFANode node : dfaGraph.getNodes()) {
+            for (DFANode node : nodes) {
                 if (currPartitions.get(node) == p) {
                     nodeSet.add(node);
                     if (node.isAccept()) {
@@ -95,12 +106,12 @@ public class DFA {
         }
 
         for (Edge<DFANode> edge : dfaGraph.getEdges()) {
-            DFANode newFromNode = newNodes.get(currPartitions.get(edge.fromNode));
-            DFANode newToNode = newNodes.get(currPartitions.get(edge.toNode));
-            graph.addEdge(newFromNode, newToNode, edge.label);
+            if (currPartitions.containsKey(edge.fromNode) && currPartitions.containsKey(edge.toNode)) {
+                DFANode newFromNode = newNodes.get(currPartitions.get(edge.fromNode));
+                DFANode newToNode = newNodes.get(currPartitions.get(edge.toNode));
+                graph.addEdge(newFromNode, newToNode, edge.label);
+            }
         }
-
-        graph.pruneAbsorbingNodes();
 
         return graph;
     }

@@ -215,26 +215,38 @@ public class DFAGraph extends Graph<DFANode> {
         return DFA.toNFA(this);
     }
 
+    public Set<DFANode> getAliveNodes() {
+        Set<DFANode> aliveSet = new HashSet<>(nodes);
+        aliveSet.removeIf(x -> !x.isAccept());
+        Set<DFANode> workingSet = aliveSet.stream().flatMap(x -> edgeMapBackward.get(x).stream().map(y -> y.fromNode)).filter(z -> !aliveSet.contains(z)).collect(Collectors.toSet());
+        while (!workingSet.isEmpty()) {
+            aliveSet.addAll(workingSet);
+            workingSet = workingSet.stream().flatMap(x -> edgeMapBackward.get(x).stream().map(y -> y.fromNode)).filter(z -> !aliveSet.contains(z)).collect(Collectors.toSet());
+        }
+        return aliveSet;
+    }
+
+    public Set<DFANode> getReachableNodes() {
+        Set<DFANode> reachableSet = new HashSet<>();
+        reachableSet.add(rootNode);
+        Set<DFANode> workingSet = reachableSet.stream().flatMap(x -> edgeMapForward.get(x).values().stream()).filter(z -> !reachableSet.contains(z)).collect(Collectors.toSet());
+        while (!workingSet.isEmpty()) {
+            reachableSet.addAll(workingSet);
+            workingSet = workingSet.stream().flatMap(x -> edgeMapForward.get(x).values().stream()).filter(z -> !reachableSet.contains(z)).collect(Collectors.toSet());
+        }
+        return reachableSet;
+    }
 
     public void pruneAbsorbingNodes() {
-        Set<DFANode> nodeSet = new HashSet<>(nodes);
-        while (!nodeSet.isEmpty()) {
-            Queue<DFANode> nodeQueue = new ArrayDeque<>(nodeSet);
-            nodeSet.clear();
-            while (!nodeQueue.isEmpty()) {
-                DFANode dfaNode = nodeQueue.poll();
-                if (!dfaNode.isAccept() && (edgeMapForward.get(dfaNode).isEmpty() || edgeMapForward.get(dfaNode).values().stream().allMatch(dfaNode::equals))) {
-                    if (dfaNode != rootNode) {
-                        for (Edge<DFANode> edge : removeNode(dfaNode)) {
-                            nodeSet.add(edge.fromNode);
-                        }
-                        nodeSet.remove(dfaNode);
-                    } else {
-                        // Root node was about to be removed. Instead, keep root node add edges connecting to itself.
-                        for (char ch : alphabet.alphabetSet) {
-                            addEdge(dfaNode, dfaNode, ch);
-                        }
-                    }
+        Set<DFANode> absorbingSet = new HashSet<>(nodes);
+        absorbingSet.removeAll(getAliveNodes());
+        for (DFANode dfaNode : absorbingSet) {
+            if (dfaNode != rootNode) {
+                removeNode(dfaNode);
+            } else {
+                // Root node was about to be removed. Instead, keep root node add edges connecting to itself.
+                for (char ch : alphabet.alphabetSet) {
+                    addEdge(dfaNode, dfaNode, ch);
                 }
             }
         }
