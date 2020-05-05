@@ -36,17 +36,18 @@ public class Factor {
         }
     }
 
-    public NFANode toGraph(NFAGraph graph, NFANode prevNode) {
+    public NFANode toGraph(NFANode prevNode) {
+        NFAGraph graph = prevNode.getGraph();
         if (quantifier == null) {
-            return atom.toGraph(graph, prevNode);
+            return atom.toGraph(prevNode);
         }
         if (quantifier.max == null) {
             // max infinity
             NFANode currNode = prevNode;
             for (int i = 0; i < quantifier.min; i++) {
-                currNode = atom.toGraph(graph, currNode);
+                currNode = atom.toGraph(currNode);
             }
-            NFANode newNode = atom.toGraph(graph, currNode);
+            NFANode newNode = atom.toGraph(currNode);
             graph.addEdge(currNode, newNode, Alphabet.Empty);
             graph.addEdge(newNode, currNode, Alphabet.Empty);
             return newNode;
@@ -54,13 +55,13 @@ public class Factor {
             // add min copies
             NFANode currNode = prevNode;
             for (int i = 0; i < quantifier.min; i++) {
-                currNode = atom.toGraph(graph, currNode);
+                currNode = atom.toGraph(currNode);
             }
             // add max - min choices
             Stack<NFANode> bypassList = new Stack<>();
             bypassList.add(currNode);
             for (int i = 0; i < quantifier.max - quantifier.min; i++) {
-                currNode = atom.toGraph(graph, currNode);
+                currNode = atom.toGraph(currNode);
                 bypassList.add(currNode);
             }
             NFANode endNode = bypassList.pop();

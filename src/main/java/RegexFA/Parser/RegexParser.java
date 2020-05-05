@@ -29,7 +29,7 @@ public class RegexParser {
         NFAGraph graph = new NFAGraph(alphabet);
         NFANode rootNode = graph.addNode();
         graph.setRootNode(rootNode);
-        graph.setTerminalNode(expression.toGraph(graph, rootNode));
+        graph.setTerminalNode(expression.toGraph(rootNode));
         return graph;
     }
 

@@ -20,7 +20,6 @@ public class Expression {
     }
 
     public static Expression seek(Queue<RegexTokenizer.Token> queue, Alphabet alphabet) throws ParserException {
-        if (queue.isEmpty()) return null;
         List<List<Factor>> termList = new ArrayList<>();
         while (true) {
             List<Factor> term = new ArrayList<>();
@@ -52,19 +51,22 @@ public class Expression {
         }
     }
 
-    public NFANode toGraph(NFAGraph graph, NFANode prevNode) {
+    public NFANode toGraph(NFANode prevNode) {
+        NFAGraph graph = prevNode.getGraph();
+        if (termList.isEmpty()) {
+            return prevNode;
+        }
         List<NFANode> nodeList = new ArrayList<>();
         for (List<Factor> term : termList) {
             NFANode attachNode = graph.addNode();
             graph.addEdge(prevNode, attachNode, Alphabet.Empty);
             NFANode currNode = attachNode;
             for (Factor factor : term) {
-                currNode = factor.toGraph(graph, currNode);
+                currNode = factor.toGraph(currNode);
             }
             nodeList.add(currNode);
         }
         NFANode termNode = graph.addNode();
-        graph.setTerminalNode(termNode);
         for (NFANode node2 : nodeList) {
             graph.addEdge(node2, termNode, Alphabet.Empty);
         }

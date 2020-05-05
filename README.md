@@ -9,13 +9,14 @@ Supports
 - Metacharacter `.`
 - Bracket expression `[aq]`, `[a-z]`, `[^0-3a]`
 
-Note that it currently can only determine whether the regex expression accepts the whole test string, i.e. whether `^<regex>$` accepts `<test-string>`.
-Some further work is needed to compute the strings captured by each group.     
+Note that it can only determine whether the regex expression accepts the whole test string, i.e. whether `^<regex>$` accepts `<test-string>`.
+It does not determine the strings captured by each group.
 
 Taking from https://stackoverflow.com/a/32760631, the grammar should be:
 ```
 <expression>     ::= <term> '|' <expression>
                    | <term>
+                   | ''
 <term>           ::= <factor> <term>
                    | <factor>
 <factor>         ::= <atom> <quantifier>

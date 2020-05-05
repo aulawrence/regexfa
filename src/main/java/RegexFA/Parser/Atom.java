@@ -104,12 +104,13 @@ public class Atom {
         }
     }
 
-    public NFANode toGraph(NFAGraph graph, NFANode prevNode) {
-        if (isExpression){
-            return expression.toGraph(graph, prevNode);
+    public NFANode toGraph(NFANode prevNode) {
+        NFAGraph graph = prevNode.getGraph();
+        if (isExpression) {
+            return expression.toGraph(prevNode);
         } else {
             NFANode currNode = graph.addNode();
-            for (char ch: characterSet){
+            for (char ch : characterSet) {
                 graph.addEdge(prevNode, currNode, ch);
             }
             return currNode;
